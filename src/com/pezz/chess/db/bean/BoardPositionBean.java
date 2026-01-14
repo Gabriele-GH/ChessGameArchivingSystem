@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,12 +7,12 @@
  */
 package com.pezz.chess.db.bean;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BoardPositionBean extends PersistentChessBean
 {
-   private BigDecimal iPositionUID;
+   private BigInteger iPositionUID;
    private int iWinWhite;
    private int iNumDraw;
    private int iWinBlack;
@@ -58,12 +57,12 @@ public class BoardPositionBean extends PersistentChessBean
       return iTotalWinBlack.get();
    }
 
-   public BigDecimal getPositionUID()
+   public BigInteger getPositionUID()
    {
       return iPositionUID;
    }
 
-   public void setPositionUID(BigDecimal aPositionUID)
+   public void setPositionUID(BigInteger aPositionUID)
    {
       iPositionUID = aPositionUID;
    }

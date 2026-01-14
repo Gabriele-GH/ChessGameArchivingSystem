@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -56,6 +55,10 @@ public abstract class WhiteBlackStatisticsData
 
    public BigDecimal getWhitePercentage()
    {
+      if (iWinWhite == 0 && iWinBlack == 0 && iNumDraw == 0)
+      {
+         return BigDecimal.ZERO;
+      }
       BigDecimal vWhite = getPercentage(iWinWhite);
       BigDecimal vBlack = getPercentage(iWinBlack);
       BigDecimal vDrawn = getPercentage(iNumDraw);

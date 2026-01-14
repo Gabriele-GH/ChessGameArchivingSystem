@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.db.table;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import com.pezz.chess.base.ChessResources;
@@ -61,7 +60,7 @@ public class FuturePosition extends BaseChessTable<FuturePositionBean>
       return vBean == null ? -1 : vBean.getId();
    }
 
-   public ArrayList<CombinationBean> getForCombinationUI(BigDecimal aPositionUID, String aOrderField) throws Exception
+   public ArrayList<CombinationBean> getForCombinationUI(BigInteger aPositionUID, String aOrderField) throws Exception
    {
       return SQLConnection.getDBPersistance().getFuturePositionForCombinationUI(aPositionUID, aOrderField,
             iSQLConnection);

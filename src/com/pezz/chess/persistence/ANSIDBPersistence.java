@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.persistence;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -22,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.pezz.chess.base.BigIntegerVsUTF8String;
 import com.pezz.chess.base.ChessColor;
 import com.pezz.chess.base.ChessException;
 import com.pezz.chess.base.ChessLogger;
@@ -476,9 +476,9 @@ public abstract class ANSIDBPersistence implements Persistable
 
    //
    @Override
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigDecimal aInitialPosition, int aInitialMoveNr,
+   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
          ChessColor aInitialColorToMove, ArrayList<MoveResult> aMoveResults,
-         HashMap<BigDecimal, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
+         HashMap<BigInteger, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
          throws Exception
    {
       try
@@ -565,7 +565,7 @@ public abstract class ANSIDBPersistence implements Persistable
       }
    }
 
-   protected void persistPositionNotes(HashMap<BigDecimal, PositionNoteData> aPositionNotes, SQLConnection aConnection)
+   protected void persistPositionNotes(HashMap<BigInteger, PositionNoteData> aPositionNotes, SQLConnection aConnection)
          throws Exception
    {
       if (aPositionNotes != null)
@@ -699,18 +699,18 @@ public abstract class ANSIDBPersistence implements Persistable
       return vPlayerBean;
    }
 
-   protected BoardPositionBean getBoardPositionByUID(BigDecimal aUID, Connection aConnection) throws Exception
+   protected BoardPositionBean getBoardPositionByUID(BigInteger aUID, Connection aConnection) throws Exception
    {
       try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetBoardPositionByUID()))
       {
-         vPs.setBigDecimal(1, aUID);
+         vPs.setString(1, BigIntegerVsUTF8String.encode(aUID));
          try (ResultSet vRS = vPs.executeQuery())
          {
             if (vRS.next())
             {
                BoardPositionBean vBean = new BoardPositionBean();
                vBean.setId(vRS.getInt(1));
-               vBean.setPositionUID(vRS.getBigDecimal(2));
+               vBean.setPositionUID(BigIntegerVsUTF8String.decode(vRS.getString(2)));
                vBean.setWinWhite(vRS.getInt(3));
                vBean.setNumDraw(vRS.getInt(4));
                vBean.setWinBlack(vRS.getInt(5));
@@ -946,7 +946,7 @@ public abstract class ANSIDBPersistence implements Persistable
       return aBean;
    }
 
-   protected CacheEntry insertBoardPositionImpl(BigDecimal aPosition, SQLConnection aConnection) throws Exception
+   protected CacheEntry insertBoardPositionImpl(BigInteger aPosition, SQLConnection aConnection) throws Exception
    {
       CacheEntry vEntry = iBoardPositionCache.get(aPosition);
       if (vEntry != null && vEntry != CacheEntry.iLoadingEntry)
@@ -960,7 +960,7 @@ public abstract class ANSIDBPersistence implements Persistable
          try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlBoardPositionInsert(),
                PreparedStatement.RETURN_GENERATED_KEYS))
          {
-            vPs.setBigDecimal(1, aPosition);
+            vPs.setString(1, BigIntegerVsUTF8String.encode(aPosition));
             vPs.setInt(2, 0);
             vPs.setInt(3, 0);
             vPs.setInt(4, 0);
@@ -1096,18 +1096,18 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public BoardPositionBean getBoardPositionByUID(BigDecimal aPositionUID, SQLConnection aConnection) throws Exception
+   public BoardPositionBean getBoardPositionByUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
    {
       try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetBoardPositionByUID()))
       {
-         vPs.setBigDecimal(1, aPositionUID);
+         vPs.setString(1, BigIntegerVsUTF8String.encode(aPositionUID));
          try (ResultSet vRs = vPs.executeQuery())
          {
             if (vRs.next())
             {
                BoardPositionBean vPositionBean = new BoardPositionBean();
                vPositionBean.setId(vRs.getInt(1));
-               vPositionBean.setPositionUID(vRs.getBigDecimal(2));
+               vPositionBean.setPositionUID(BigIntegerVsUTF8String.decode(vRs.getString(2)));
                vPositionBean.setWinWhite(vRs.getInt(3));
                vPositionBean.setNumDraw(vRs.getInt(4));
                vPositionBean.setWinBlack(vRs.getInt(5));
@@ -1183,7 +1183,7 @@ public abstract class ANSIDBPersistence implements Persistable
             {
                BoardPositionBean vPositionBean = new BoardPositionBean();
                vPositionBean.setId(vRs.getInt(1));
-               vPositionBean.setPositionUID(vRs.getBigDecimal(2));
+               vPositionBean.setPositionUID(BigIntegerVsUTF8String.decode(vRs.getString(2)));
                vPositionBean.setWinWhite(vRs.getInt(3));
                vPositionBean.setNumDraw(vRs.getInt(4));
                vPositionBean.setWinBlack(vRs.getInt(5));
@@ -1353,7 +1353,7 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public ArrayList<CombinationBean> getFuturePositionForCombinationUI(BigDecimal aPositionUID, String aOrderField,
+   public ArrayList<CombinationBean> getFuturePositionForCombinationUI(BigInteger aPositionUID, String aOrderField,
          SQLConnection aConnection) throws Exception
    {
       ArrayList<CombinationBean> vList = new ArrayList<>();
@@ -2456,7 +2456,7 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public PositionNoteData getPositionNoteDataByPositionUID(BigDecimal aPositionUID, SQLConnection aConnection)
+   public PositionNoteData getPositionNoteDataByPositionUID(BigInteger aPositionUID, SQLConnection aConnection)
          throws Exception
    {
       PositionNoteData vPositionNoteData = new PositionNoteData();
@@ -2502,7 +2502,7 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public void deletePositionNoteByPositionUID(BigDecimal aPositionUID, SQLConnection aConnection) throws Exception
+   public void deletePositionNoteByPositionUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
    {
       String vSQL = "DELETE FROM positionnote WHERE  positionid = ?";
       {

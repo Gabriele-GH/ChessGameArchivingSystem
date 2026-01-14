@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.db.table;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.db.bean.BoardPositionBean;
@@ -35,10 +34,11 @@ public class BoardPosition extends BaseChessTable<BoardPositionBean>
       return ChessResources.RESOURCES.getString("Table.Board.Position");
    }
 
-   public BoardPositionBean getByUID(BigDecimal aPositionUID) throws Exception
+   public BoardPositionBean getByUID(BigInteger aPositionUID) throws Exception
    {
       return SQLConnection.getDBPersistance().getBoardPositionByUID(aPositionUID, iSQLConnection);
    }
+
    // private boolean compare(String aS1, String aS2)
    // {
    // int vLen = aS1.length();
@@ -82,15 +82,11 @@ public class BoardPosition extends BaseChessTable<BoardPositionBean>
    // {
    // boolean vB = compare(vOldPosFromBean, vOldPosFromKeys);
    // System.out.println("DIFF 1 " + vB);
-   //// ChessPosition vPos1 = ChessPosition.fromDatabaseString(vPositionUID);
-   //// ChessPosition vPos2 = ChessPosition.fromDatabaseString(vBean.getPositionUID());
-   //// if (!vPos1.equals(vPos2))
-   //// {
-   //// System.out.println("Psotions different");
-   //// }
+   //// ChessPosition vPos1 = ChessPosition.fromDatabaseString(vPositionUID); ChessPosition vPos2 =
+   /// ChessPosition.fromDatabaseString(vBean.getPositionUID()); if (!vPos1.equals(vPos2)) { System.out.println("Psotions different"); }
    ////
    ////
-   ////
+   /// ////
    // }
    // if (!vPositionUID.equals(vOldPosFromKeys))
    // {
@@ -220,7 +216,6 @@ public class BoardPosition extends BaseChessTable<BoardPositionBean>
    // }
    // return aBean.getId();
    // }
-
    @Override
    public BoardPositionBean insert(BoardPositionBean aBean) throws Exception
    {

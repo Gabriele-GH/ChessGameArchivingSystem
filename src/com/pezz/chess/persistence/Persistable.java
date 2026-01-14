@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.persistence;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,9 +37,9 @@ import com.pezz.util.itn.SQLConnection;
 
 public interface Persistable
 {
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigDecimal aInitialPosition, int aInitialMoveNr,
+   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
          ChessColor aInitialColorToMove, ArrayList<MoveResult> aMoveResults,
-         HashMap<BigDecimal, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
+         HashMap<BigInteger, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
          throws Exception;
 
    public void beginSaveGames(SQLConnection aConnection) throws Exception;
@@ -76,7 +75,7 @@ public interface Persistable
 
    public void deleteBoardPosition(int aId, SQLConnection aConnection) throws Exception;
 
-   public BoardPositionBean getBoardPositionByUID(BigDecimal aPositionUID, SQLConnection aConnection) throws Exception;
+   public BoardPositionBean getBoardPositionByUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception;
 
    public ChessEcoBean getChessEcoByCode(String aCode, SQLConnection aSQLConnection) throws Exception;
 
@@ -103,7 +102,7 @@ public interface Persistable
 
    public void deleteFuturePosition(int aId, SQLConnection aConnection) throws Exception;
 
-   public ArrayList<CombinationBean> getFuturePositionForCombinationUI(BigDecimal aPositionUID, String aOrderField,
+   public ArrayList<CombinationBean> getFuturePositionForCombinationUI(BigInteger aPositionUID, String aOrderField,
          SQLConnection aConnection) throws Exception;
 
    public GameDetailBean insertGameDetail(GameDetailBean aBean, SQLConnection aConnection) throws Exception;
@@ -181,12 +180,12 @@ public interface Persistable
 
    public void deletePositionNote(int aId, SQLConnection aConnection) throws Exception;
 
-   public PositionNoteData getPositionNoteDataByPositionUID(BigDecimal aPositionUID, SQLConnection aConnection)
+   public PositionNoteData getPositionNoteDataByPositionUID(BigInteger aPositionUID, SQLConnection aConnection)
          throws Exception;
 
    public PositionNoteData getPositionNoteDataByPositionId(int aPositionId, SQLConnection aConnection) throws Exception;
 
-   public void deletePositionNoteByPositionUID(BigDecimal aPositionUID, SQLConnection aConnection) throws Exception;
+   public void deletePositionNoteByPositionUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception;
 
    public boolean existsPlayer(int aId, SQLConnection aConnection) throws Exception;
 

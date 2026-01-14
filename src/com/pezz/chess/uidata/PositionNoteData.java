@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,23 +7,23 @@
  */
 package com.pezz.chess.uidata;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import com.pezz.chess.base.NoteType;
 
 public class PositionNoteData
 {
-   private BigDecimal iPositionUID;
+   private BigInteger iPositionUID;
    private int iId;
    private NoteType iNoteType;
    private String iNoteCnt;
 
-   public BigDecimal getPositionUID()
+   public BigInteger getPositionUID()
    {
       return iPositionUID;
    }
 
-   public void setPositionUID(BigDecimal aPositionUID)
+   public void setPositionUID(BigInteger aPositionUID)
    {
       iPositionUID = aPositionUID;
    }

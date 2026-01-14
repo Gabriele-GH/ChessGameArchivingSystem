@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -9,7 +8,7 @@
 package com.pezz.chess.base;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import com.pezz.chess.board.ChessBoard;
 import com.pezz.chess.board.Square;
@@ -434,7 +433,7 @@ public class ChessBoardController implements Serializable
       return iPreviousStatus;
    }
 
-   public BigDecimal getChessboardDatabaseValue()
+   public BigInteger getChessboardDatabaseValue()
    {
       return iChessBoard.toDatabaseValue();
    }
@@ -456,7 +455,7 @@ public class ChessBoardController implements Serializable
       return vData;
    }
 
-   public void deleteNoteByPositionUID(BigDecimal aPositionUID)
+   public void deleteNoteByPositionUID(BigInteger aPositionUID)
    {
       iChessBoard.deleteNoteByPositionUID(aPositionUID);
    }

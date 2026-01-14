@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.db.table;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.db.bean.BoardPositionBean;
@@ -55,7 +54,7 @@ public class PositionNote extends BaseChessTable<PositionNoteBean>
       SQLConnection.getDBPersistance().deletePositionNote(aId, iSQLConnection);
    }
 
-   public PositionNoteData getPositionNoteDataByPositionUID(BigDecimal aPositionUID) throws Exception
+   public PositionNoteData getPositionNoteDataByPositionUID(BigInteger aPositionUID) throws Exception
    {
       return SQLConnection.getDBPersistance().getPositionNoteDataByPositionUID(aPositionUID, iSQLConnection);
    }
@@ -65,7 +64,7 @@ public class PositionNote extends BaseChessTable<PositionNoteBean>
       return SQLConnection.getDBPersistance().getPositionNoteDataByPositionId(aPositionId, iSQLConnection);
    }
 
-   public void deleteByPositionUID(BigDecimal aPositionUID) throws Exception
+   public void deleteByPositionUID(BigInteger aPositionUID) throws Exception
    {
       SQLConnection.getDBPersistance().deletePositionNoteByPositionUID(aPositionUID, iSQLConnection);
    }

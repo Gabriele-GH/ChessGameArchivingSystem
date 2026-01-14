@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.persistence;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class BoardPositionCache extends ConcurrentHashMap<BigDecimal, CacheEntry>
+public class BoardPositionCache extends ConcurrentHashMap<BigInteger, CacheEntry>
 {
    private final int iMaxCachedObjects;
    private ScheduledExecutorService iScheduler;
@@ -57,11 +56,11 @@ public class BoardPositionCache extends ConcurrentHashMap<BigDecimal, CacheEntry
          return;
       }
       int vToRemove = vCurrentSize - iMaxCachedObjects;
-      List<Map.Entry<BigDecimal, CacheEntry>> vEntriesByTimeAndAccessNr = entrySet().stream()
-            .sorted(Comparator.comparingLong((Map.Entry<BigDecimal, CacheEntry> e) -> e.getValue().getInsertTime())
+      List<Map.Entry<BigInteger, CacheEntry>> vEntriesByTimeAndAccessNr = entrySet().stream()
+            .sorted(Comparator.comparingLong((Map.Entry<BigInteger, CacheEntry> e) -> e.getValue().getInsertTime())
                   .thenComparingInt(e -> e.getValue().getAccessCount()))
             .limit(vToRemove).toList();
-      for (Map.Entry<BigDecimal, CacheEntry> vEntryToRemove : vEntriesByTimeAndAccessNr)
+      for (Map.Entry<BigInteger, CacheEntry> vEntryToRemove : vEntriesByTimeAndAccessNr)
       {
          remove(vEntryToRemove.getKey());
       }

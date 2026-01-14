@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -10,6 +9,7 @@ package com.pezz.chess.ui;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 
@@ -508,7 +508,7 @@ public class UIController
       return iNetwork.getPositionNote();
    }
 
-   public void deleteNoteByPositionUID(BigDecimal aPositionUID)
+   public void deleteNoteByPositionUID(BigInteger aPositionUID)
    {
       iNetwork.deleteNoteByPositionUID(aPositionUID);
       iChessUI.refreshNotes();

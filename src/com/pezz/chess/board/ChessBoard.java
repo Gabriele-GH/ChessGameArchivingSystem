@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.board;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -678,7 +677,7 @@ public class ChessBoard implements Cloneable
             : iAvailablePieces.getKingBlack() != null;
    }
 
-   public BigDecimal toDatabaseValue()
+   public BigInteger toDatabaseValue()
    {
       return iChessPosition.toDatabaseValue();
    }
@@ -789,7 +788,7 @@ public class ChessBoard implements Cloneable
          MoveResult vResult = iGameHistory.performUndo();
          iColorToMove = vResult == null ? iGameHistory.getInitialColorToMove()
                : ChessColor.getOppositeColor(vResult.getPieceMoved().getColor());
-         BigDecimal vPosition = vResult == null ? iGameHistory.getInitialPosition()
+         BigInteger vPosition = vResult == null ? iGameHistory.getInitialPosition()
                : vResult.getChessBoardDatabaseValue();
          ChessPosition vPos = ChessPosition.fromDatabaseValue(vPosition);
          AvailablePieces vAvailablePieces = AvailablePieces.fromChessPosition(vPos);
@@ -849,7 +848,7 @@ public class ChessBoard implements Cloneable
    public void reviewGame(int aGameHeaderId) throws Exception
    {
       iGameHistory.reviewGame(aGameHeaderId);
-      BigDecimal vPosition = iGameHistory.getInitialPosition();
+      BigInteger vPosition = iGameHistory.getInitialPosition();
       iChessPosition = ChessPosition.fromDatabaseValue(vPosition);
       fillPosition();
       iColorToMove = iGameHistory.getInitialColorToMove();
@@ -935,7 +934,7 @@ public class ChessBoard implements Cloneable
       return iGameHistory.getPositionNote(toDatabaseValue());
    }
 
-   public void deleteNoteByPositionUID(BigDecimal aPositionUID)
+   public void deleteNoteByPositionUID(BigInteger aPositionUID)
    {
       iGameHistory.deleteNoteByPositionUID(aPositionUID);
    }

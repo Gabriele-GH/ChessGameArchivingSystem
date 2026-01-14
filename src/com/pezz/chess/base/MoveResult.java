@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.base;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Objects;
 
 import com.pezz.chess.pieces.ChessBoardPiece;
@@ -29,7 +28,7 @@ public class MoveResult implements Cloneable
    private boolean iOtherPieceSameRow;
    private boolean iSaved;
    private int iSavedMoveValue;
-   private BigDecimal iChessBoardDatabaseValue;
+   private BigInteger iChessBoardDatabaseValue;
    private boolean iIsShortCastle;
    private boolean iIsLongCastle;
    private InvalidMoveCause iInvalidMoveCause;
@@ -141,12 +140,12 @@ public class MoveResult implements Cloneable
       iPiecePromoted = aPiecePromoted;
    }
 
-   public BigDecimal getChessBoardDatabaseValue()
+   public BigInteger getChessBoardDatabaseValue()
    {
       return iChessBoardDatabaseValue;
    }
 
-   public void setChessBoardDatabaseValue(BigDecimal aChessBoardDatabaseValue)
+   public void setChessBoardDatabaseValue(BigInteger aChessBoardDatabaseValue)
    {
       iChessBoardDatabaseValue = aChessBoardDatabaseValue;
    }

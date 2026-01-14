@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -11,6 +10,7 @@ package com.pezz.chess.base;
 import java.io.File;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -777,7 +777,7 @@ public class GameController implements Serializable
       return iActiveController.getPositionNote(getSqlConnection());
    }
 
-   public void deleteNoteByPositionUID(BigDecimal aPositionUID)
+   public void deleteNoteByPositionUID(BigInteger aPositionUID)
    {
       if (isGameSaved())
       {

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -10,6 +9,7 @@ package com.pezz.chess.board;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,7 +44,7 @@ import com.pezz.util.itn.SQLConnection;
 
 public class GameHistory implements Cloneable, Serializable
 {
-   private BigDecimal iInitialPosition;
+   private BigInteger iInitialPosition;
    private int iInitialPositionId;
    private int iInitialMoveNr;
    private ChessColor iInitialColorToMove;
@@ -66,7 +66,7 @@ public class GameHistory implements Cloneable, Serializable
    private GameHeaderBean iActualGameHeaderBean;
    private int iActualSemiMoveNumber;
    private ChessColor iActualColorMoved;
-   private HashMap<BigDecimal, PositionNoteData> iPositionNotes;
+   private HashMap<BigInteger, PositionNoteData> iPositionNotes;
    // NON MODIFICARE: usato in CryptSrc x riconoscere la classe
    private static final long serialVersionUID = -5894225449216646322L;
 
@@ -88,7 +88,7 @@ public class GameHistory implements Cloneable, Serializable
       }
    }
 
-   public void setInitialPosition(BigDecimal aInitialPosition)
+   public void setInitialPosition(BigInteger aInitialPosition)
    {
       iInitialPosition = aInitialPosition;
    }
@@ -183,7 +183,7 @@ public class GameHistory implements Cloneable, Serializable
       }
    }
 
-   public BigDecimal getInitialPosition()
+   public BigInteger getInitialPosition()
    {
       return iInitialPosition;
    }
@@ -540,7 +540,7 @@ public class GameHistory implements Cloneable, Serializable
          MoveResult vResult = MoveResult.fromDatabaseValue(vFuturePositionBean.getMoveValue());
          // vResult.setSaved(true);
          vBoardPositionBean = vPosition.getById(vFuturePositionBean.getPositionTo());
-         BigDecimal vPositionUID = vBoardPositionBean.getPositionUID();
+         BigInteger vPositionUID = vBoardPositionBean.getPositionUID();
          vResult.setChessBoardDatabaseValue(vPositionUID);
          PositionNoteData vData = vPositionNote.getPositionNoteDataByPositionUID(vPositionUID);
          iPositionNotes.put(vPositionUID, vData);
@@ -801,12 +801,12 @@ public class GameHistory implements Cloneable, Serializable
       return vData;
    }
 
-   public PositionNoteData getPositionNote(BigDecimal aPositionUID)
+   public PositionNoteData getPositionNote(BigInteger aPositionUID)
    {
       return iPositionNotes == null ? null : iPositionNotes.get(aPositionUID);
    }
 
-   public void deleteNoteByPositionUID(BigDecimal aPositionUID)
+   public void deleteNoteByPositionUID(BigInteger aPositionUID)
    {
       if (iPositionNotes != null)
       {

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,7 +7,7 @@
  */
 package com.pezz.chess.board;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import com.pezz.chess.base.Binary;
@@ -166,7 +165,7 @@ public class ChessPosition implements Cloneable
       return true;
    }
 
-   public BigDecimal toDatabaseValue()
+   public BigInteger toDatabaseValue()
    {
       int vPiecesIdx = 64;
       char[] vChars = new char[192];
@@ -193,13 +192,13 @@ public class ChessPosition implements Cloneable
       {
          vChars[x] = '0';
       }
-      return new BigDecimal(Binary.fromBinaryStringToBigInteger(new String(vChars)));
+      return Binary.fromBinaryStringToBigInteger(new String(vChars));
    }
 
-   public static ChessPosition fromDatabaseValue(BigDecimal aDatabaseString)
+   public static ChessPosition fromDatabaseValue(BigInteger aDatabaseString)
    {
       ChessPosition vPosition = new ChessPosition();
-      String vFullPosition = Binary.fromBigIntegerToBinaryString(aDatabaseString.toBigInteger(), 192);
+      String vFullPosition = Binary.fromBigIntegerToBinaryString(aDatabaseString, 192);
       char[] vFullPositionChars = vFullPosition.toCharArray();
       char[] vChars = new char[4];
       int vPiecesIdx = 64;

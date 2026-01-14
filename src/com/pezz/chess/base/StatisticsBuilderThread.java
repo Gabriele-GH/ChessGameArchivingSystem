@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -23,10 +22,10 @@ public class StatisticsBuilderThread extends Thread
    public static final int STATUS_HOLD = 3;
    public static final int STATUS_TO_RESUME = 4;
    public static final int STATUS_ENDED = 5;
-   private volatile boolean iCanRun = true;
+   private volatile boolean iCanRun;
    private volatile int iStatus = STATUS_INITIALISING;
    private Object iHoldObject;
-   private boolean iIsDebug = true;
+   private boolean iIsDebug;
 
    public StatisticsBuilderThread(GameController controller)
    {
@@ -34,6 +33,9 @@ public class StatisticsBuilderThread extends Thread
       setPriority(MIN_PRIORITY);
       this.iController = controller;
       iHoldObject = new Object();
+      iCanRun = true;
+      String vObject = System.getProperty("DebugStat");
+      iIsDebug = vObject == null ? false : Boolean.parseBoolean(vObject);
    }
 
    @Override

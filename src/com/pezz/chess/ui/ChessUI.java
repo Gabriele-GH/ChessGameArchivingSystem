@@ -1298,7 +1298,7 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       // decodeKey(new int[] { 108, 116, 47, 62, 47, 105, 105, 122, 80, 101, 101, 114, 97, 32, 98, 98, 62, 109, 104,
       // 109, 104, 60, 98, 60, 110, 122, 101, 32, 108, 105, 98, 71, 121, 62, 60, 108, 116, 60, 62 }));
       JLabel vLabel = new JLabel(
-            "<html><b>Version 1.0.0.0</b><br><br>Copyright (c) 2025 Gabriele Pezzini<br><br>License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</html>");
+            "<html><b>Version 1.0.0.2</b><br><br>Copyright (c) 2025 Gabriele Pezzini<br><br>License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</html>");
       vGbc.fill = GridBagConstraints.HORIZONTAL;
       vContentPane.add(vLabel, vGbc);
       vGbc = new GridBagConstraints();
