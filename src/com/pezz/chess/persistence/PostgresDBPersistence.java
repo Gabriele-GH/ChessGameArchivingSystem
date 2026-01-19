@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -41,7 +40,7 @@ public class PostgresDBPersistence extends ANSIDBPersistence
    @Override
    public ArrayList<WhiteBlackStatisticsData> getPlayersData(int aLimit, SQLConnection aConnection) throws Exception
    {
-      String vSql = iSqlGetPlayersData + aLimit + "OFFSET(0)";
+      String vSql = iSqlGetPlayersData + aLimit + " OFFSET(0)";
       ArrayList<WhiteBlackStatisticsData> vList = new ArrayList<>();
       try (Statement vStmt = aConnection.getConnection().createStatement();
             ResultSet vRs = vStmt.executeQuery(vSql.toString()))

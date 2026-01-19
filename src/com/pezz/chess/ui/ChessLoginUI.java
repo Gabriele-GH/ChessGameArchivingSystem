@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -9,6 +8,7 @@
 package com.pezz.chess.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -57,14 +57,16 @@ public class ChessLoginUI implements ActionListener
       Resources vRes = ChessResources.RESOURCES;
       iFrmLogin = new JFrame(vRes.getString("Login"));
       iFrmLogin.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-      JPanel vPanel = new JPanel();
+      BackgroundPanel vPanel = new BackgroundPanel(ChessResources.RESOURCES.getImage("chesspieces.png").getImage());
       vPanel.setLayout(new GridBagLayout());
       GridBagConstraints vGbc = new GridBagConstraints();
       vGbc.gridx = 0;
       vGbc.gridy = 0;
       vGbc.insets = new Insets(50, 50, 50, 10);
       vGbc.anchor = GridBagConstraints.CENTER;
-      JLabel vConnectionName = new JLabel(vRes.getString("Connection.Name"));
+      JLabel vConnectionName = new JLabel(
+            "<html><p style=\"font-size:12px\"><b>" + vRes.getString("Connection.Name") + "</b></p></html>");
+      vConnectionName.setForeground(Color.white);
       vPanel.add(vConnectionName, vGbc);
       vGbc = new GridBagConstraints();
       vGbc.gridx = 1;
@@ -125,7 +127,7 @@ public class ChessLoginUI implements ActionListener
       iMniDelete.setIcon(vRes.getImage("delete16.gif"));
       iMniDelete.addActionListener(this);
       iPpmOptions.add(iMniDelete);
-      iFrmLogin.setPreferredSize(new Dimension(500, 300));
+      iFrmLogin.setPreferredSize(new Dimension(550, 300));
       List<Image> vIcons = new ArrayList<Image>();
       vIcons.add(ChessResources.RESOURCES.getImage("chess16.gif").getImage());
       vIcons.add(ChessResources.RESOURCES.getImage("chess32.gif").getImage());

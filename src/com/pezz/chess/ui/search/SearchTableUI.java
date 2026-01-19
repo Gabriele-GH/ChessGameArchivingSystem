@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -42,16 +41,6 @@ public class SearchTableUI extends TablePaging<SearchGameHeaderData>
       vTCM.getColumn(8).setCellRenderer(new SearchTableCellRenderer());
       vTCM.getColumn(9).setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
       vTCM.getColumn(9).setCellRenderer(new SearchTableCellRenderer());
-      vTCM.getColumn(0).setPreferredWidth(130);
-      vTCM.getColumn(1).setPreferredWidth(130);
-      vTCM.getColumn(2).setPreferredWidth(50);
-      vTCM.getColumn(3).setPreferredWidth(120);
-      vTCM.getColumn(4).setPreferredWidth(70);
-      vTCM.getColumn(5).setPreferredWidth(120);
-      vTCM.getColumn(6).setPreferredWidth(50);
-      vTCM.getColumn(7).setPreferredWidth(40);
-      vTCM.getColumn(8).setPreferredWidth(20);
-      vTCM.getColumn(9).setPreferredWidth(45);
    }
 
    @Override

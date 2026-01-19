@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -30,7 +29,7 @@ import com.pezz.chess.uidata.PagingBeanList;
 public abstract class TablePaging<E> extends JPanel implements MouseListener, ActionListener
 {
    private static final long serialVersionUID = -6103637301281283221L;
-   protected JTable iTblPaging;
+   protected AutoAdaptColumnsWidthTable iTblPaging;
    private TableButton iBtnFirst;
    private TableButton iBtnNext;
    private TableButton iBtnPrev;
@@ -55,7 +54,7 @@ public abstract class TablePaging<E> extends JPanel implements MouseListener, Ac
    protected void buildGridPanel(PagingBeanList<E> aPagingBeanList)
    {
       PagingTableModel<E> vModel = buildTableModel();
-      iTblPaging = new JTable(vModel);
+      iTblPaging = new AutoAdaptColumnsWidthTable(vModel);
       if (aPagingBeanList != null)
       {
          vModel.setBeans(aPagingBeanList);

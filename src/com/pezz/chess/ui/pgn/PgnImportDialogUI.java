@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -27,7 +26,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -37,6 +35,7 @@ import com.pezz.chess.base.ChessFormatter;
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.ui.HorizontalAlignmentTableCellRenderer;
 import com.pezz.chess.ui.UIController;
+import com.pezz.chess.ui.paging.AutoAdaptColumnsWidthTable;
 
 public class PgnImportDialogUI implements ActionListener
 {
@@ -49,7 +48,7 @@ public class PgnImportDialogUI implements ActionListener
    private JProgressBar iPrbGame;
    private JButton iBtnClose;
    private JButton iBtnCancel;
-   private JTable iTblStatistics;
+   private AutoAdaptColumnsWidthTable iTblStatistics;
    private long iBeginTime;
 
    public PgnImportDialogUI(UIController aUIController, JFrame aParentFrame)
@@ -196,7 +195,7 @@ public class PgnImportDialogUI implements ActionListener
       vColumnNames.add(ChessResources.RESOURCES.getString("Errors"));
       vColumnNames.add(ChessResources.RESOURCES.getString("Imported"));
       Vector<Vector<String>> vRows = new Vector<>();
-      iTblStatistics = new JTable(new ImporterTableModel(vRows, vColumnNames));
+      iTblStatistics = new AutoAdaptColumnsWidthTable(new ImporterTableModel(vRows, vColumnNames));
       DefaultTableCellRenderer vRight = new DefaultTableCellRenderer();
       iTblStatistics.getColumnModel().getColumn(0)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.LEFT));

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -47,6 +46,11 @@ public class PGNExportFileField extends JPanel implements ActionListener
       iBtnChooser.setPreferredSize(new Dimension(21, 21));
       iBtnChooser.setMaximumSize(new Dimension(21, 21));
       iBtnChooser.setMinimumSize(new Dimension(21, 21));
+      vGbc = new GridBagConstraints();
+      vGbc.gridx = 2;
+      vGbc.gridy = 0;
+      vGbc.anchor = GridBagConstraints.NORTHWEST;
+      vGbc.weightx = 1.0;
       add(iBtnChooser, vGbc);
    }
 

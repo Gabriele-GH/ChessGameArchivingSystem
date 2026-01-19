@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -15,8 +14,11 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.sql.Date;
@@ -71,13 +73,23 @@ public class SearchGameUI implements WindowListener, ActionListener, TablePaging
       iDlgSearch.setTitle(ChessResources.RESOURCES.getString("Search.Game"));
       iDlgSearch.setModal(true);
       iDlgSearch.setContentPane(createContentPane(aOnlyFavorites));
-      iDlgSearch.setPreferredSize(new Dimension(800, 780));
+      iDlgSearch.setPreferredSize(new Dimension(800, 700));
       iDlgSearch.pack();
       iDlgSearch.setLocationRelativeTo(aParent);
       if (aOnlyFavorites)
       {
          performSearch();
       }
+      iDlgSearch.addComponentListener(new ComponentAdapter()
+      {
+         @Override
+         public void componentShown(ComponentEvent e)
+         {
+            Point p = iDlgSearch.getLocation();
+            iDlgSearch.setLocation(p.x, p.y + 50);
+            iDlgSearch.removeComponentListener(this);
+         }
+      });
       iDlgSearch.setVisible(true);
    }
 

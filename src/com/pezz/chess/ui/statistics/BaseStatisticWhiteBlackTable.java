@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -17,9 +16,10 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import com.pezz.chess.ui.HorizontalAlignmentTableCellRenderer;
+import com.pezz.chess.ui.paging.AutoAdaptColumnsWidthTable;
 import com.pezz.chess.uidata.WhiteBlackStatisticsData;
 
-public abstract class BaseStatisticWhiteBlackTable extends JTable
+public abstract class BaseStatisticWhiteBlackTable extends AutoAdaptColumnsWidthTable
 {
    private static final long serialVersionUID = -4600897068624093036L;
    private boolean iBoldOnLastLine;
@@ -35,13 +35,6 @@ public abstract class BaseStatisticWhiteBlackTable extends JTable
       setRowSelectionAllowed(true);
       TableColumnModel vTCM = getColumnModel();
       setFirtColumnWidth();
-      vTCM.getColumn(1).setPreferredWidth(100);
-      vTCM.getColumn(2).setPreferredWidth(100);
-      vTCM.getColumn(3).setPreferredWidth(100);
-      vTCM.getColumn(4).setPreferredWidth(100);
-      vTCM.getColumn(5).setPreferredWidth(80);
-      vTCM.getColumn(6).setPreferredWidth(80);
-      vTCM.getColumn(7).setPreferredWidth(80);
       int vCnt = vTCM.getColumnCount();
       for (int x = 0; x < vCnt; x++)
       {

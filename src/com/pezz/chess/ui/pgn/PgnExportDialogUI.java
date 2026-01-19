@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -64,7 +63,7 @@ public class PgnExportDialogUI implements ActionListener, WindowListener
       iDlgExport.setTitle(ChessResources.RESOURCES.getString("Export.Games"));
       iDlgExport.setModal(true);
       iDlgExport.setContentPane(createExportContentPane());
-      iDlgExport.setPreferredSize(new Dimension(630, 280));
+      iDlgExport.setPreferredSize(new Dimension(800, 280));
       iDlgExport.pack();
       iDlgExport.setLocationRelativeTo(aParent);
       iDlgProgress = new JDialog(iDlgExport);
@@ -178,7 +177,7 @@ public class PgnExportDialogUI implements ActionListener, WindowListener
       vGbc.gridwidth = 2;
       vPanel.add(iPnlFilter, vGbc);
       //
-      JLabel vLblFile = new JLabel("Export.File");
+      JLabel vLblFile = new JLabel(ChessResources.RESOURCES.getString("Export.File"));
       vGbc = new GridBagConstraints();
       vGbc.gridx = 0;
       vGbc.gridy = 1;
@@ -192,7 +191,8 @@ public class PgnExportDialogUI implements ActionListener, WindowListener
       vGbc.gridy = 1;
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.fill = GridBagConstraints.HORIZONTAL;
-      vGbc.insets = new Insets(10, 10, 0, 0);
+      vGbc.weightx = 1.0;
+      vGbc.insets = new Insets(10, 10, 0, 100);
       vPanel.add(iPgnExportFileField, vGbc);
       //
       vGbc = new GridBagConstraints();
