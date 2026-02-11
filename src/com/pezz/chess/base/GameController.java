@@ -13,10 +13,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.jar.JarFile;
 
 import javax.swing.JOptionPane;
 
@@ -29,6 +32,7 @@ import com.pezz.chess.db.table.FuturePosition;
 import com.pezz.chess.db.table.GameHeader;
 import com.pezz.chess.db.table.Player;
 import com.pezz.chess.db.table.PositionNote;
+import com.pezz.chess.persistence.Persistable;
 import com.pezz.chess.pgn.PgnExportThread;
 import com.pezz.chess.pgn.PgnImportThread;
 import com.pezz.chess.pieces.ChessPiece;
@@ -48,6 +52,7 @@ import com.pezz.chess.uidata.PositionNoteData;
 import com.pezz.chess.uidata.ReviewGameData;
 import com.pezz.chess.uidata.SearchGameHeaderData;
 import com.pezz.chess.uidata.WhiteBlackStatisticsData;
+import com.pezz.util.itn.ClassInspector;
 import com.pezz.util.itn.SQLConnection;
 
 public class GameController implements Serializable
@@ -886,7 +891,28 @@ public class GameController implements Serializable
 
    public String discoverJdbcDriverClassName(String aJdbcJarFiles)
    {
-      return SQLConnection.getDriverClassnameFromJar(aJdbcJarFiles);
+      ArrayList<Class<?>> vDriverClasses = ClassInspector.getExtensionsFromJar(Driver.class, aJdbcJarFiles, false,
+            false);
+      ArrayList<Class<?>> vClasspathClasses = ClassInspector.getExtensionsOf(Persistable.class, false, false);
+      for (Class<?> vDriverClass : vDriverClasses)
+      {
+         for (Class<?> vClasspathClass : vClasspathClasses)
+         {
+            try
+            {
+               Persistable vObject = (Persistable) vClasspathClass.getConstructor().newInstance();
+               if (vDriverClass.getName().equals(vObject.getJdbcDriverClassName()))
+               {
+                  return vObject.getJdbcDriverClassName();
+               }
+            }
+            catch (Throwable e)
+            {
+               e.printStackTrace();
+            }
+         }
+      }
+      return null;
    }
 
    public PlayerBeanList getLinkedPlayerData(int aPlayerId)
@@ -1027,5 +1053,74 @@ public class GameController implements Serializable
          vRet = e.getMessage() == null ? e.getClass().getName() : e.getMessage();
       }
       return vRet;
+   }
+
+   public String getDatabaseProductName(String aJdbcJarsFiles)
+   {
+      return SQLConnection.getDatabaseProductName(aJdbcJarsFiles);
+   }
+
+   public String getJdbcDriverClassName(String aJdbcJarsFiles)
+   {
+      return SQLConnection.getJDBCDriverClassName(aJdbcJarsFiles);
+   }
+
+   public int getDefaultDatabasePortNr(String aJdbcJarsFiles)
+   {
+      return SQLConnection.getDefaultDatabasePortNr(aJdbcJarsFiles);
+   }
+
+   public List<String> getDriverClasses(String aJdbcJarsFiles)
+   {
+      return SQLConnection.getDriverClasses(aJdbcJarsFiles);
+   }
+
+   public String checkJarFiles(String aJarsFiles)
+   {
+      String[] vFiles = aJarsFiles.split(",;:");
+      for (String vFileStr : vFiles)
+      {
+         File vFile = new File(vFileStr);
+         if (!vFile.exists())
+         {
+            return ChessResources.RESOURCES.getString("File.Not.Exists", vFile.getAbsolutePath());
+         }
+         try (JarFile jar = new JarFile(vFile))
+         {
+            if (jar.getManifest() == null && jar.size() > 0)
+            {
+               return ChessResources.RESOURCES.getString("File.Not.Jar.File", vFile.getAbsolutePath());
+            }
+         }
+         catch (Exception e)
+         {
+            return ChessResources.RESOURCES.getString("File.Not.Jar.File", vFile.getAbsolutePath());
+         }
+      }
+      return null;
+   }
+
+   public String buildJDBCUrl(String aJdbcJarsFiles, String aIPAddress, int aDBPortNr, String aDBUserName,
+         String aDatabaseName)
+   {
+      return SQLConnection.buildJDBCUrl(aJdbcJarsFiles, aIPAddress, aDBPortNr, aDBUserName, aDatabaseName);
+   }
+
+   public boolean existsConnectionWithName(String aConnectionName)
+   {
+      if (iChessPreferences == null)
+      {
+         return false;
+      }
+      if (iChessPreferences.getConnectionsProperties() == null)
+      {
+         return false;
+      }
+      return iChessPreferences.getConnectionsProperties().existsConnectionWithName(aConnectionName);
+   }
+
+   public List<String> getSupportedDatabasesNames()
+   {
+      return SQLConnection.getSupportedDatabasesNames();
    }
 }

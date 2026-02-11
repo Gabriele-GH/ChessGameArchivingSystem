@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -19,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PlayerCache extends ConcurrentHashMap<String, CacheEntry>
 {
+   private static final long serialVersionUID = -2384841809669304264L;
    private int iMaxCachedObjects;
    private ScheduledExecutorService iScheduler;
    private ScheduledFuture<?> iCleanupTask;

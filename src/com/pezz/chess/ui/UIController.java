@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.pezz.chess.base.ChessColor;
 import com.pezz.chess.base.Coordinate;
@@ -594,5 +595,46 @@ public class UIController
          iChessUI.refreshTitle();
       }
       return vStr;
+   }
+
+   public String getDatabaseProductName(String aJdbcJarsFiles)
+   {
+      return iNetwork.getDatabaseProductName(aJdbcJarsFiles);
+   }
+
+   public String getJdbcDriverClassName(String aJdbcJarsFiles)
+   {
+      return iNetwork.getJdbcDriverClassName(aJdbcJarsFiles);
+   }
+
+   public int getDefaultDatabasePortNr(String aJdbcJarsFiles)
+   {
+      return iNetwork.getDefaultDatabasePortNr(aJdbcJarsFiles);
+   }
+
+   public List<String> getDriverClasses(String aJdbcJarsFiles)
+   {
+      return iNetwork.getDriverClasses(aJdbcJarsFiles);
+   }
+
+   public String checkJarFiles(String aJarsFiles)
+   {
+      return iNetwork.checkJarFiles(aJarsFiles);
+   }
+
+   public String buildJDBCUrl(String aJdbcJarsFiles, String aIPAddress, int aDBPortNr, String aDBUserName,
+         String aDatabaseName)
+   {
+      return iNetwork.buildJDBCUrl(aJdbcJarsFiles, aIPAddress, aDBPortNr, aDBUserName, aDatabaseName);
+   }
+
+   public boolean existsConnectionWithName(String aConnectionName)
+   {
+      return iNetwork.existsConnectionWithName(aConnectionName);
+   }
+
+   public List<String> getSupportedDatabasesNames()
+   {
+      return iNetwork.getSupportedDatabasesNames();
    }
 }

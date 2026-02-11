@@ -199,25 +199,18 @@ public class PgnImportDialogUI implements ActionListener
       DefaultTableCellRenderer vRight = new DefaultTableCellRenderer();
       iTblStatistics.getColumnModel().getColumn(0)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.LEFT));
-      iTblStatistics.getColumnModel().getColumn(0).setPreferredWidth(100);
       iTblStatistics.getColumnModel().getColumn(1)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(1).setPreferredWidth(100);
       iTblStatistics.getColumnModel().getColumn(2)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(2).setPreferredWidth(100);
       iTblStatistics.getColumnModel().getColumn(3)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(3).setPreferredWidth(120);
       iTblStatistics.getColumnModel().getColumn(4)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(4).setPreferredWidth(100);
       iTblStatistics.getColumnModel().getColumn(5)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(5).setPreferredWidth(50);
       iTblStatistics.getColumnModel().getColumn(6)
             .setHeaderRenderer(new HorizontalAlignmentTableCellRenderer(SwingConstants.RIGHT));
-      iTblStatistics.getColumnModel().getColumn(6).setPreferredWidth(100);
       vRight.setHorizontalAlignment(SwingConstants.RIGHT);
       iTblStatistics.getColumnModel().getColumn(1).setCellRenderer(vRight);
       iTblStatistics.getColumnModel().getColumn(2).setCellRenderer(vRight);

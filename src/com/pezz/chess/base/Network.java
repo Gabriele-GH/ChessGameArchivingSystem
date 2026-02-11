@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.pezz.chess.board.Square;
 import com.pezz.chess.pieces.ChessPiece;
@@ -474,5 +475,46 @@ public class Network
    public String perfomLogin(String aConnectionName)
    {
       return iGameController.perfomLogin(aConnectionName);
+   }
+
+   public String getDatabaseProductName(String aJdbcJarsFiles)
+   {
+      return iGameController.getDatabaseProductName(aJdbcJarsFiles);
+   }
+
+   public String getJdbcDriverClassName(String aJdbcJarsFiles)
+   {
+      return iGameController.getJdbcDriverClassName(aJdbcJarsFiles);
+   }
+
+   public int getDefaultDatabasePortNr(String aJdbcJarsFiles)
+   {
+      return iGameController.getDefaultDatabasePortNr(aJdbcJarsFiles);
+   }
+
+   public List<String> getDriverClasses(String aJdbcJarsFiles)
+   {
+      return iGameController.getDriverClasses(aJdbcJarsFiles);
+   }
+
+   public String checkJarFiles(String aJarsFiles)
+   {
+      return iGameController.checkJarFiles(aJarsFiles);
+   }
+
+   public String buildJDBCUrl(String aJdbcJarsFiles, String aIPAddress, int aDBPortNr, String aDBUserName,
+         String aDatabaseName)
+   {
+      return iGameController.buildJDBCUrl(aJdbcJarsFiles, aIPAddress, aDBPortNr, aDBUserName, aDatabaseName);
+   }
+
+   public boolean existsConnectionWithName(String aConnectionName)
+   {
+      return iGameController.existsConnectionWithName(aConnectionName);
+   }
+
+   public List<String> getSupportedDatabasesNames()
+   {
+      return iGameController.getSupportedDatabasesNames();
    }
 }

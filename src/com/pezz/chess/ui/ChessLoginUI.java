@@ -34,6 +34,7 @@ import com.pezz.chess.base.Resources;
 import com.pezz.chess.preferences.ChessConnectionProperties;
 import com.pezz.chess.preferences.ChessConnectionsProperties;
 import com.pezz.chess.preferences.ChessPreferences;
+import com.pezz.chess.ui.wizard.ChessConnectionWizardUI;
 
 public class ChessLoginUI implements ActionListener
 {
@@ -178,22 +179,18 @@ public class ChessLoginUI implements ActionListener
 
    public void iMniConnectionPressed(int aOperation)
    {
-      boolean vOk = false;
-      ChessConnectionUI vUI = null;
+      String vConnectionName = null;
       if (aOperation == ChessPreferences.CONNECTION_ADD)
       {
-         vUI = ChessConnectionUI.showOpenDialog(iUIController, iFrmLogin, aOperation);
-         vOk = vUI.getExitValue() == ChessConnectionUI.iExitOk;
+         vConnectionName = ChessConnectionWizardUI.showOpenDialog(iUIController, iFrmLogin);
       }
       else
       {
-         vUI = ChessConnectionUI.showOpenDialog(iUIController, iFrmLogin, aOperation,
+         vConnectionName = ChessConnectionUI.showOpenDialog(iUIController, iFrmLogin, aOperation,
                (ChessConnectionProperties) iCbxLogin.getSelectedItem());
-         vOk = vUI.getExitValue() == ChessConnectionUI.iExitOk;
       }
-      if (vOk)
+      if (vConnectionName != null)
       {
-         String vCurrentConnectionName = vUI.getCurrentConnectionName();
          iConnectionsProperties = iUIController.getConnectionsProperties();
          iCbxLogin.removeAllItems();
          ChessConnectionProperties[] vConnectionsProperties = iConnectionsProperties.toArray();
@@ -213,7 +210,7 @@ public class ChessLoginUI implements ActionListener
          }
          else
          {
-            selectConnectionWithName(vCurrentConnectionName);
+            selectConnectionWithName(vConnectionName);
          }
       }
    }

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -54,11 +53,8 @@ public class ChessConnectionUI implements ActionListener
    private JButton iBtnCancel;
    private UIController iUIController;
    private int iOperation;
-   public static int iExitKo = 0;
-   public static int iExitOk = 1;
-   private int iExitValue;
    private String iPreviousConnectionName;
-   private String iCurrentConnectionName;
+   private static String iCurrentConnectionName = null;
 
    private ChessConnectionUI(UIController aUIController, JFrame aParent, int aOperation,
          ChessConnectionProperties aProperties)
@@ -78,17 +74,46 @@ public class ChessConnectionUI implements ActionListener
       vPanel.setLayout(new GridBagLayout());
       GridBagConstraints vGbc = new GridBagConstraints();
       //
-      JLabel vLabel = new JLabel(ChessResources.RESOURCES.getString("Connection.Name"));
+      JLabel vLabel = new JLabel(ChessResources.RESOURCES.getString("Supported.Databases"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
       vGbc.gridy = 0;
+      vGbc.insets = new Insets(10, 10, 0, 0);
+      vPanel.add(vLabel, vGbc);
+      JTextField vTxfSupportedDBs = new JTextField(55);
+      vTxfSupportedDBs.setEditable(false);
+      vTxfSupportedDBs.setFocusable(false);
+      vGbc = new GridBagConstraints();
+      vGbc.anchor = GridBagConstraints.WEST;
+      vGbc.gridx = 1;
+      vGbc.gridy = 0;
+      vGbc.insets = new Insets(10, 10, 0, 0);
+      vGbc.gridwidth = 3;
+      vPanel.add(vTxfSupportedDBs, vGbc);
+      List<String> vDBs = iUIController.getSupportedDatabasesNames();
+      StringBuilder vDBsStr = new StringBuilder();
+      for (int x = 0; x < vDBs.size(); x++)
+      {
+         if (x > 0)
+         {
+            vDBsStr.append(" - ");
+         }
+         vDBsStr.append(vDBs.get(x));
+      }
+      vTxfSupportedDBs.setText(vDBsStr.toString());
+      //
+      vLabel = new JLabel(ChessResources.RESOURCES.getString("Connection.Name"));
+      vGbc.anchor = GridBagConstraints.WEST;
+      vGbc.gridx = 0;
+      vGbc.gridy = 1;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iTxfConnectionName = new JTextField(30);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 0;
+      vGbc.gridy = 1;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iTxfConnectionName, vGbc);
       if (aProperties != null && aOperation != ChessPreferences.CONNECTION_COPY)
@@ -100,14 +125,15 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("User.Name"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 1;
+      vGbc.gridy = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iTxfDBUser = new JTextField(30);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 1;
+      vGbc.gridy = 2;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iTxfDBUser, vGbc);
       if (aProperties != null)
@@ -120,14 +146,15 @@ public class ChessConnectionUI implements ActionListener
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 2;
+      vGbc.gridy = 3;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iPsfDBPassword = new JPasswordField(30);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 2;
+      vGbc.gridy = 3;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iPsfDBPassword, vGbc);
       if (aProperties != null)
@@ -139,14 +166,15 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("Jdbc.Url"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 3;
+      vGbc.gridy = 4;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
-      iTxfJDBCURL = new JTextField(30);
+      iTxfJDBCURL = new JTextField(50);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 3;
+      vGbc.gridy = 4;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iTxfJDBCURL, vGbc);
       if (aProperties != null)
@@ -158,14 +186,14 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("JDBC.Driver.Files"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 4;
+      vGbc.gridy = 5;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iTxfJDBCJarFiles = new JTextField(50);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 4;
+      vGbc.gridy = 5;
       vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iTxfJDBCJarFiles, vGbc);
@@ -180,7 +208,7 @@ public class ChessConnectionUI implements ActionListener
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 3;
-      vGbc.gridy = 4;
+      vGbc.gridy = 5;
       vGbc.insets = new Insets(10, 0, 0, 10);
       vPanel.add(iBtnDrvSearch, vGbc);
       iBtnDrvSearch.setEnabled(iOperation != ChessPreferences.CONNECTION_DELETE);
@@ -188,14 +216,14 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("Driver.Class.Name"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 5;
+      vGbc.gridy = 6;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iTxfJDBCDriverClassName = new JTextField(30);
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 5;
+      vGbc.gridy = 6;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iTxfJDBCDriverClassName, vGbc);
       if (aProperties != null)
@@ -209,7 +237,7 @@ public class ChessConnectionUI implements ActionListener
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 2;
-      vGbc.gridy = 5;
+      vGbc.gridy = 6;
       vGbc.insets = new Insets(10, 0, 0, 10);
       vPanel.add(iBtnDriverClassSearch, vGbc);
       iBtnDriverClassSearch.setEnabled(iOperation != ChessPreferences.CONNECTION_DELETE);
@@ -217,14 +245,15 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("Auto.Logon"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 6;
+      vGbc.gridy = 7;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iChkAutoLogon = new JCheckBox();
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 6;
+      vGbc.gridy = 7;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iChkAutoLogon, vGbc);
       if (aProperties != null)
@@ -236,14 +265,15 @@ public class ChessConnectionUI implements ActionListener
       vLabel = new JLabel(ChessResources.RESOURCES.getString("Default.Connection"));
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 0;
-      vGbc.gridy = 7;
+      vGbc.gridy = 8;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(vLabel, vGbc);
       iChkDefaultConnection = new JCheckBox();
       vGbc = new GridBagConstraints();
       vGbc.anchor = GridBagConstraints.WEST;
       vGbc.gridx = 1;
-      vGbc.gridy = 7;
+      vGbc.gridy = 8;
+      vGbc.gridwidth = 2;
       vGbc.insets = new Insets(10, 10, 0, 0);
       vPanel.add(iChkDefaultConnection, vGbc);
       if (aProperties != null)
@@ -275,19 +305,19 @@ public class ChessConnectionUI implements ActionListener
       iDlgConnection.setLocationRelativeTo(aParent);
    }
 
-   public static ChessConnectionUI showOpenDialog(UIController aUIController, JFrame aParent, int aOperation)
+   public static String showOpenDialog(UIController aUIController, JFrame aParent, int aOperation)
    {
-      ChessConnectionUI vUI = new ChessConnectionUI(aUIController, aParent, aOperation, null);
-      iDlgConnection.setVisible(true);
-      return vUI;
+      return showOpenDialog(aUIController, aParent, aOperation, null);
    }
 
-   public static ChessConnectionUI showOpenDialog(UIController aUIController, JFrame aParent, int aOperation,
+   public static String showOpenDialog(UIController aUIController, JFrame aParent, int aOperation,
          ChessConnectionProperties aChessConnectionProperties)
    {
-      ChessConnectionUI vUI = new ChessConnectionUI(aUIController, aParent, aOperation, aChessConnectionProperties);
+      new ChessConnectionUI(aUIController, aParent, aOperation, aChessConnectionProperties);
       iDlgConnection.setVisible(true);
-      return vUI;
+      iDlgConnection.dispose();
+      iDlgConnection = null;
+      return iCurrentConnectionName;
    }
 
    @Override
@@ -313,7 +343,7 @@ public class ChessConnectionUI implements ActionListener
 
    protected void okPressed()
    {
-      iExitValue = iExitKo;
+      iCurrentConnectionName = null;
       if (checkFormData())
       {
          String vError = iUIController.manageLoginConnection(iOperation, toChessConnectionProperties(),
@@ -321,9 +351,7 @@ public class ChessConnectionUI implements ActionListener
          if (vError == null)
          {
             iCurrentConnectionName = iTxfConnectionName.getText().trim();
-            iExitValue = iExitOk;
             iDlgConnection.setVisible(false);
-            iDlgConnection = null;
          }
          else
          {
@@ -380,9 +408,8 @@ public class ChessConnectionUI implements ActionListener
 
    protected void cancelPressed()
    {
-      iExitValue = iExitKo;
+      iCurrentConnectionName = null;
       iDlgConnection.setVisible(false);
-      iDlgConnection = null;
    }
 
    protected void chooseJarFile()
@@ -465,24 +492,27 @@ public class ChessConnectionUI implements ActionListener
       }
       else
       {
-         String vDriverClassName = iUIController.discoverJdbcDriverClassName(vJars);
-         if (vDriverClassName == null || vDriverClassName.trim().length() == 0)
+         String vError = iUIController.checkJarFiles(vJars);
+         if (vError == null)
          {
-            JOptionPane.showMessageDialog(iDlgConnection,
-                  ChessResources.RESOURCES.getString("Not.Found.Enter.Manually",
-                        ChessResources.RESOURCES.getString("Driver.Class.Name")),
-                  ChessResources.RESOURCES.getString("Attention"), JOptionPane.ERROR_MESSAGE);
+            String vDriverClassName = iUIController.discoverJdbcDriverClassName(vJars);
+            if (vDriverClassName == null || vDriverClassName.trim().length() == 0)
+            {
+               JOptionPane.showMessageDialog(iDlgConnection,
+                     ChessResources.RESOURCES.getString("Not.Found.Enter.Manually",
+                           ChessResources.RESOURCES.getString("Driver.Class.Name")),
+                     ChessResources.RESOURCES.getString("Attention"), JOptionPane.ERROR_MESSAGE);
+            }
+            else
+            {
+               iTxfJDBCDriverClassName.setText(vDriverClassName.trim());
+            }
          }
          else
          {
-            iTxfJDBCDriverClassName.setText(vDriverClassName.trim());
+            message(vError);
          }
       }
-   }
-
-   public int getExitValue()
-   {
-      return iExitValue;
    }
 
    public ChessConnectionProperties toChessConnectionProperties()
@@ -493,8 +523,9 @@ public class ChessConnectionUI implements ActionListener
             iChkDefaultConnection.isSelected());
    }
 
-   public String getCurrentConnectionName()
+   private void message(String aMsg)
    {
-      return iCurrentConnectionName;
+      JOptionPane.showMessageDialog(iDlgConnection.getParent(), aMsg, ChessResources.RESOURCES.getString("Attention"),
+            JOptionPane.ERROR_MESSAGE);
    }
 }

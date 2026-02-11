@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,6 +7,8 @@
  */
 package com.pezz.chess.persistence;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -371,5 +372,47 @@ public class MariaDBPersistence extends ANSIDBPersistence
             )
             ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
             """;
+   }
+
+   @Override
+   public String getJdbcDriverClassName()
+   {
+      return "org.mariadb.jdbc.Driver";
+   }
+
+   @Override
+   public String getDBResourceFileName()
+   {
+      return "MariaDB.Tables.sql";
+   }
+
+   @Override
+   public void setBoardPositionUID(PreparedStatement aStmt, int aIdx, BigInteger aPositionUID) throws Exception
+   {
+      aStmt.setBigDecimal(aIdx, new BigDecimal(aPositionUID));
+   }
+
+   @Override
+   public BigInteger getBoardPositionUID(ResultSet aResultSet, int aIdx) throws Exception
+   {
+      return aResultSet.getBigDecimal(aIdx).toBigIntegerExact();
+   }
+
+   @Override
+   public String getDatabaseProductName()
+   {
+      return "MariaDB";
+   }
+
+   @Override
+   public int getDefaultDatabasePortNr()
+   {
+      return 3306;
+   }
+
+   @Override
+   public String buildJDBCUrl(String aIPAddress, int aDBPortNr, String aDBUserName, String aDatabaseName)
+   {
+      return "jdbc:mariadb://" + aIPAddress + ":" + aDBPortNr + "/" + aDatabaseName;
    }
 }

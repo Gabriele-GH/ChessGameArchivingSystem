@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.pezz.chess.base.BigIntegerVsUTF8String;
 import com.pezz.chess.base.ChessColor;
 import com.pezz.chess.base.ChessException;
 import com.pezz.chess.base.ChessLogger;
@@ -699,28 +698,6 @@ public abstract class ANSIDBPersistence implements Persistable
       return vPlayerBean;
    }
 
-   protected BoardPositionBean getBoardPositionByUID(BigInteger aUID, Connection aConnection) throws Exception
-   {
-      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetBoardPositionByUID()))
-      {
-         vPs.setString(1, BigIntegerVsUTF8String.encode(aUID));
-         try (ResultSet vRS = vPs.executeQuery())
-         {
-            if (vRS.next())
-            {
-               BoardPositionBean vBean = new BoardPositionBean();
-               vBean.setId(vRS.getInt(1));
-               vBean.setPositionUID(BigIntegerVsUTF8String.decode(vRS.getString(2)));
-               vBean.setWinWhite(vRS.getInt(3));
-               vBean.setNumDraw(vRS.getInt(4));
-               vBean.setWinBlack(vRS.getInt(5));
-               return vBean;
-            }
-         }
-      }
-      return null;
-   }
-
    @Override
    public void createDefaultData(SQLConnection aConnection) throws Exception
    {
@@ -960,7 +937,7 @@ public abstract class ANSIDBPersistence implements Persistable
          try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlBoardPositionInsert(),
                PreparedStatement.RETURN_GENERATED_KEYS))
          {
-            vPs.setString(1, BigIntegerVsUTF8String.encode(aPosition));
+            setBoardPositionUID(vPs, 1, aPosition);
             vPs.setInt(2, 0);
             vPs.setInt(3, 0);
             vPs.setInt(4, 0);
@@ -1096,29 +1073,6 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public BoardPositionBean getBoardPositionByUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
-   {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetBoardPositionByUID()))
-      {
-         vPs.setString(1, BigIntegerVsUTF8String.encode(aPositionUID));
-         try (ResultSet vRs = vPs.executeQuery())
-         {
-            if (vRs.next())
-            {
-               BoardPositionBean vPositionBean = new BoardPositionBean();
-               vPositionBean.setId(vRs.getInt(1));
-               vPositionBean.setPositionUID(BigIntegerVsUTF8String.decode(vRs.getString(2)));
-               vPositionBean.setWinWhite(vRs.getInt(3));
-               vPositionBean.setNumDraw(vRs.getInt(4));
-               vPositionBean.setWinBlack(vRs.getInt(5));
-               return vPositionBean;
-            }
-            return null;
-         }
-      }
-   }
-
-   @Override
    public ChessEcoBean getChessEcoByCode(String aCode, SQLConnection aSQLConnection) throws Exception
    {
       try (PreparedStatement vPs = aSQLConnection.getConnection().prepareStatement(getSqlChessEcoByCode()))
@@ -1183,7 +1137,30 @@ public abstract class ANSIDBPersistence implements Persistable
             {
                BoardPositionBean vPositionBean = new BoardPositionBean();
                vPositionBean.setId(vRs.getInt(1));
-               vPositionBean.setPositionUID(BigIntegerVsUTF8String.decode(vRs.getString(2)));
+               vPositionBean.setPositionUID(getBoardPositionUID(vRs, 2));
+               vPositionBean.setWinWhite(vRs.getInt(3));
+               vPositionBean.setNumDraw(vRs.getInt(4));
+               vPositionBean.setWinBlack(vRs.getInt(5));
+               return vPositionBean;
+            }
+            return null;
+         }
+      }
+   }
+
+   @Override
+   public BoardPositionBean getBoardPositionByUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetBoardPositionByUID()))
+      {
+         setBoardPositionUID(vPs, 1, aPositionUID);
+         try (ResultSet vRs = vPs.executeQuery())
+         {
+            if (vRs.next())
+            {
+               BoardPositionBean vPositionBean = new BoardPositionBean();
+               vPositionBean.setId(vRs.getInt(1));
+               vPositionBean.setPositionUID(getBoardPositionUID(vRs, 2));
                vPositionBean.setWinWhite(vRs.getInt(3));
                vPositionBean.setNumDraw(vRs.getInt(4));
                vPositionBean.setWinBlack(vRs.getInt(5));
@@ -2890,7 +2867,8 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public List<String> getCreateTablesStatements(SQLConnection aConnection) throws Exception
    {
-      return ChessResources.RESOURCES.getCreateTablesStataments(aConnection.getDBType().getDBResourceFileName());
+      return ChessResources.RESOURCES
+            .getCreateTablesStataments(SQLConnection.getDBPersistance().getDBResourceFileName());
    }
 
    @Override

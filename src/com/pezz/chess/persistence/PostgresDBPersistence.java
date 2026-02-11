@@ -7,6 +7,8 @@
  */
 package com.pezz.chess.persistence;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 
 import com.pezz.chess.base.ChessColor;
 import com.pezz.chess.base.GameResult;
+import com.pezz.chess.db.bean.BoardPositionBean;
 import com.pezz.chess.uidata.PagingBeanList;
 import com.pezz.chess.uidata.SearchGameHeaderData;
 import com.pezz.chess.uidata.WhiteBlackStatisticsData;
@@ -379,5 +382,70 @@ public class PostgresDBPersistence extends ANSIDBPersistence
             DO UPDATE SET id = player.id
             RETURNING id;
             """;
+   }
+
+   @Override
+   public String getJdbcDriverClassName()
+   {
+      return "org.postgresql.Driver";
+   }
+
+   @Override
+   public String getDBResourceFileName()
+   {
+      return "Postgres.Tables.sql";
+   }
+
+   @Override
+   public BoardPositionBean getBoardPositionByUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetBoardPositionByUID()))
+      {
+         vPs.setBigDecimal(1, new BigDecimal(aPositionUID));
+         try (ResultSet vRs = vPs.executeQuery())
+         {
+            if (vRs.next())
+            {
+               BoardPositionBean vPositionBean = new BoardPositionBean();
+               vPositionBean.setId(vRs.getInt(1));
+               vPositionBean.setPositionUID(vRs.getBigDecimal(2).toBigInteger());
+               vPositionBean.setWinWhite(vRs.getInt(3));
+               vPositionBean.setNumDraw(vRs.getInt(4));
+               vPositionBean.setWinBlack(vRs.getInt(5));
+               return vPositionBean;
+            }
+            return null;
+         }
+      }
+   }
+
+   @Override
+   public BigInteger getBoardPositionUID(ResultSet aResultSet, int aIdx) throws Exception
+   {
+      return aResultSet.getBigDecimal(aIdx).toBigIntegerExact();
+   }
+
+   @Override
+   public void setBoardPositionUID(PreparedStatement aStmt, int aIdx, BigInteger aPositionUID) throws Exception
+   {
+      aStmt.setBigDecimal(aIdx, new BigDecimal(aPositionUID));
+   }
+
+   @Override
+   public String getDatabaseProductName()
+   {
+      return "PostgreSQL";
+   }
+
+   @Override
+   public int getDefaultDatabasePortNr()
+   {
+      return 5432;
+   }
+
+   @Override
+   public String buildJDBCUrl(String aIPAddress, int aDBPortNr, String aDBUserName, String aDatabaseName)
+   {
+      return "jdbc:postgresql://" + aIPAddress + ":" + aDBPortNr + "/" + aDatabaseName;
    }
 }

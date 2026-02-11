@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -379,6 +378,7 @@ public class CSVDataImportExport
       return vSqlStmts;
    }
 
+   @SuppressWarnings("resource")
    protected Connection makeConnection(Properties aCfgProperties) throws Exception
    {
       String vDbUser = aCfgProperties.getProperty("DbUser");
@@ -386,9 +386,8 @@ public class CSVDataImportExport
       String vJdbcUrl = aCfgProperties.getProperty("JdbcUrl");
       String vJdbcDriverFiles = aCfgProperties.getProperty("JdbcDriverFiles");
       String vJdbcDriverClass = aCfgProperties.getProperty("JdbcDriverClass");
-      SQLConnection vSQLConnection = new SQLConnection(vDbUser, vDbPassword, vJdbcUrl, vJdbcDriverFiles,
-            vJdbcDriverClass, Connection.TRANSACTION_READ_COMMITTED, false);
-      return vSQLConnection.getConnection();
+      return new SQLConnection(vDbUser, vDbPassword, vJdbcUrl, vJdbcDriverFiles, vJdbcDriverClass,
+            Connection.TRANSACTION_READ_COMMITTED, false).getConnection();
    }
 
    protected static void usage()

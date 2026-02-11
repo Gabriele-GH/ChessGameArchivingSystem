@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BoardPositionCache extends ConcurrentHashMap<BigInteger, CacheEntry>
 {
+   private static final long serialVersionUID = 8650266073293313966L;
    private final int iMaxCachedObjects;
    private ScheduledExecutorService iScheduler;
    private ScheduledFuture<?> iCleanupTask;

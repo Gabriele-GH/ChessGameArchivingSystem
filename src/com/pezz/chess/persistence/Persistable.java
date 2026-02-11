@@ -9,6 +9,8 @@ package com.pezz.chess.persistence;
 
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -280,4 +282,18 @@ public interface Persistable
    public String getSqlGetLinkedPlayerData();
 
    public String getSqlGetPlayerAliasById();
+
+   public String getJdbcDriverClassName();
+
+   public String getDBResourceFileName();
+
+   public void setBoardPositionUID(PreparedStatement aStmt, int aIdx, BigInteger aPositionUID) throws Exception;
+
+   public BigInteger getBoardPositionUID(ResultSet aResultSet, int aIdx) throws Exception;
+
+   public String getDatabaseProductName();
+
+   public int getDefaultDatabasePortNr();
+
+   public String buildJDBCUrl(String aIPAddress, int aDBPortNr, String aDBUserName, String aDatabaseName);
 }

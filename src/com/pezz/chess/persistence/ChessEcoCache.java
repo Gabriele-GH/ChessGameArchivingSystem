@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -19,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ChessEcoCache extends ConcurrentHashMap<String, CacheEntry>
 {
+   private static final long serialVersionUID = 830393148960415397L;
    private int iMaxCachedObjects;
    private ScheduledExecutorService iScheduler;
    private ScheduledFuture<?> iCleanupTask;

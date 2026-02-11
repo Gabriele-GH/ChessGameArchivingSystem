@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -22,7 +21,7 @@ public abstract class BaseChessTable<J> implements Serializable
    public BaseChessTable(SQLConnection aConnection)
    {
       iSQLConnection = aConnection;
-      iDBResourceFileName = aConnection.getDBType().getDBResourceFileName();
+      iDBResourceFileName = SQLConnection.getDBPersistance().getDBResourceFileName();
    }
 
    public abstract String getTableDescription();

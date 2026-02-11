@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -8,23 +7,16 @@
  */
 package com.pezz.util.itn;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.pezz.chess.persistence.MariaDBPersistence;
+import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.persistence.Persistable;
-import com.pezz.chess.persistence.PostgresDBPersistence;
 
 public class SQLConnection implements AutoCloseable
 {
@@ -36,8 +28,7 @@ public class SQLConnection implements AutoCloseable
    private String iJDBCJarFiles;
    private int iTransactionIsolation;
    private boolean iAutoCommit;
-   private DBType iDBType;
-   private static Persistable iDBPersistance;
+   private static Persistable iPersistable = null;
 
    public SQLConnection(String aUserName, String aPassword, String aJDBCURL, String aJDBCDriverName,
          String aJDBCJarFiles, boolean aAutoCommit)
@@ -49,7 +40,6 @@ public class SQLConnection implements AutoCloseable
       iJDBCJarFiles = aJDBCJarFiles;
       iTransactionIsolation = -1;
       iAutoCommit = aAutoCommit;
-      iDBType = DBType.ANSI;
    }
 
    public SQLConnection(String aUserName, String aPassword, String aJDBCURL, String aJDBCDriverName,
@@ -91,110 +81,123 @@ public class SQLConnection implements AutoCloseable
                iTransactionIsolation = Connection.TRANSACTION_READ_COMMITTED;
             }
          }
-         setDBType();
+         Persistable vPersistable = getDBPersistance(iJDBCJarFiles);
+         if (vPersistable == null)
+         {
+            throw new Exception(ChessResources.RESOURCES.getString("Unsupported.Database.Error", iJDBCDriverName));
+         }
+         iPersistable = vPersistable;
       }
       return iConnection;
    }
 
    private void loadDrivers(String aJDBCJarFiles, String aJDBCDriverName) throws Exception
    {
-      int vIdx = 1;
-      for (int x = 0; x < aJDBCJarFiles.length(); x++)
-      {
-         if (aJDBCJarFiles.charAt(x) == ';')
-         {
-            vIdx++;
-         }
-      }
-      URL[] vUrl = new URL[vIdx];
-      if (vIdx == 1)
-      {
-         vUrl[0] = new File(aJDBCJarFiles).toURI().toURL();
-      }
-      else
-      {
-         StringTokenizer vSt = new StringTokenizer(aJDBCJarFiles.trim(), ";");
-         int vCnt = 0;
-         while (vSt.hasMoreTokens())
-         {
-            vUrl[vCnt] = new File(vSt.nextToken()).toURI().toURL();
-            vCnt++;
-         }
-      }
-      URLClassLoader ucl = new URLClassLoader(vUrl);
+      URLClassLoader ucl = ClassInspector.buildURLClassLoader(aJDBCJarFiles);
       Driver d = (Driver) Class.forName(aJDBCDriverName, true, ucl).getConstructor().newInstance();
       DriverManager.registerDriver(new DynamicDriver(d));
    }
 
-   private void setDBType() throws Exception
+   public static Persistable getDBPersistance(String aJDBCDriversFiles)
    {
-      DatabaseMetaData vMetaData = iConnection.getMetaData();
-      iDBType = DBType.getDBTypeFromProductDatabaseName(vMetaData.getDatabaseProductName());
-      switch (iDBType)
+      if (aJDBCDriversFiles == null || aJDBCDriversFiles.trim().length() == 0)
       {
-         case MARIADB:
-            iDBPersistance = new MariaDBPersistence();
-            break;
-         case POSTGRESS:
-            iDBPersistance = new PostgresDBPersistence();
-            break;
-         default:
-            throw new Exception("Unsupported database: " + iDBType + " " + vMetaData.getDatabaseProductName());
+         return null;
       }
-   }
-
-   public DBType getDBType()
-   {
-      return iDBType;
-   }
-
-   public static String getDriverClassnameFromJar(String aJDBCJarFiles)
-   {
+      String[] vFiles = aJDBCDriversFiles.split(",;:");
+      ArrayList<Class<?>> vDriverClasses = new ArrayList<>();
+      for (String vFile : vFiles)
+      {
+         if (new File(vFile).exists())
+         {
+            vDriverClasses.addAll(ClassInspector.getExtensionsFromJar(Driver.class, vFile, false, false));
+         }
+      }
+      ArrayList<Class<?>> vClasspathClasses = ClassInspector.getExtensionsOf(Persistable.class, false, false);
       try
       {
-         int vIdx = 1;
-         for (int x = 0; x < aJDBCJarFiles.length(); x++)
+         for (Class<?> vDriverClass : vDriverClasses)
          {
-            if (aJDBCJarFiles.charAt(x) == ';')
+            for (Class<?> vClasspathClass : vClasspathClasses)
             {
-               vIdx++;
-            }
-         }
-         URL[] vUrl = new URL[vIdx];
-         if (vIdx == 1)
-         {
-            vUrl[0] = new URI("jar:file:" + aJDBCJarFiles + "!/").toURL();
-         }
-         else
-         {
-            StringTokenizer vSt = new StringTokenizer(aJDBCJarFiles.trim(), ";");
-            int vCnt = 0;
-            while (vSt.hasMoreTokens())
-            {
-               vUrl[vCnt] = new URI("jar:file:" + vSt.nextToken() + "!/").toURL();
-               vCnt++;
-            }
-         }
-         try (URLClassLoader vUCL = new URLClassLoader(vUrl);
-               InputStream vIs = vUCL.getResourceAsStream("/META-INF/services/java.sql.Driver");
-               InputStreamReader vISR = new InputStreamReader(vIs, StandardCharsets.UTF_8);
-               BufferedReader vBR = new BufferedReader(vISR);)
-         {
-            String vLine = vBR.readLine();
-            while (vLine != null && (vLine.startsWith("#") || vLine.trim().length() == 0))
-            {
-               vLine = vBR.readLine();
-            }
-            if (vLine != null && vLine.trim().length() > 0)
-            {
-               return vLine.trim();
+               Persistable vObject = (Persistable) vClasspathClass.getConstructor().newInstance();
+               if (vDriverClass.getName().equals(vObject.getJdbcDriverClassName()))
+               {
+                  return vObject;
+               }
             }
          }
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
       }
       return null;
+   }
+
+   public static List<String> getSupportedDatabasesNames()
+   {
+      List<String> vRet = new ArrayList<>();
+      ArrayList<Class<?>> vClasspathClasses = ClassInspector.getExtensionsOf(Persistable.class, false, false);
+      for (Class<?> vClass : vClasspathClasses)
+      {
+         try
+         {
+            Persistable vPersistable = (Persistable) vClass.getConstructor().newInstance();
+            vRet.add(vPersistable.getDatabaseProductName());
+         }
+         catch (Throwable e)
+         {
+         }
+      }
+      return vRet;
+   }
+
+   public static String getDatabaseProductName(String aJdbcJarsFiles)
+   {
+      Persistable vPersistable = getDBPersistance(aJdbcJarsFiles);
+      return vPersistable == null ? null : vPersistable.getDatabaseProductName();
+   }
+
+   public static String getJDBCDriverClassName(String aJdbcJarsFiles)
+   {
+      Persistable vPersistable = getDBPersistance(aJdbcJarsFiles);
+      return vPersistable == null ? null : vPersistable.getJdbcDriverClassName();
+   }
+
+   public static int getDefaultDatabasePortNr(String aJdbcJarsFiles)
+   {
+      Persistable vPersistable = getDBPersistance(aJdbcJarsFiles);
+      return vPersistable == null ? null : vPersistable.getDefaultDatabasePortNr();
+   }
+
+   public static List<String> getDriverClasses(String aJdbcJarsFiles)
+   {
+      String[] vFiles = aJdbcJarsFiles.split(",;:");
+      ArrayList<Class<?>> vDriverClasses = new ArrayList<>();
+      for (String vFile : vFiles)
+      {
+         if (new File(vFile).exists())
+         {
+            vDriverClasses.addAll(ClassInspector.getExtensionsFromJar(Driver.class, vFile, false, false));
+         }
+      }
+      List<String> vList = new ArrayList<>();
+      for (Class<?> vClass : vDriverClasses)
+      {
+         String vName = vClass.getName();
+         if (!vList.contains(vName))
+         {
+            vList.add(vName);
+         }
+      }
+      return vList;
+   }
+
+   public static String buildJDBCUrl(String aJdbcJarsFiles, String aIPAddress, int aDBPortNr, String aDBUserName,
+         String aDatabaseName)
+   {
+      Persistable vPersistable = getDBPersistance(aJdbcJarsFiles);
+      return vPersistable.buildJDBCUrl(aIPAddress, aDBPortNr, aDBUserName, aDatabaseName);
    }
 
    public void dump()
@@ -206,12 +209,11 @@ public class SQLConnection implements AutoCloseable
       System.out.println("Jdbc driver jar files: " + iJDBCJarFiles);
       System.out.println("Transaction isolation: " + iTransactionIsolation);
       System.out.println("Auto commit: " + iAutoCommit);
-      System.out.println("Database type: " + iDBType.getDescription());
    }
 
    public static Persistable getDBPersistance()
    {
-      return iDBPersistance;
+      return iPersistable;
    }
 
    @Override

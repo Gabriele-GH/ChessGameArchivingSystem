@@ -1,4 +1,4 @@
-CREATE TABLE boardposition (id SERIAL PRIMARY KEY, positionuid VARCHAR(25), winwhite INT, numdraw INT, winblack INT, UNIQUE(positionuid))
+CREATE TABLE boardposition (id SERIAL PRIMARY KEY, positionuid NUMERIC(58, 0), winwhite INT, numdraw INT, winblack INT, UNIQUE(positionuid))
 CREATE TABLE futureposition (id SERIAL PRIMARY KEY, positionfrom INT, movestr INT, positionto INT, UNIQUE (positionfrom, movestr))
 CREATE TABLE player (id SERIAL PRIMARY KEY, fullname VARCHAR(30), higherelo INT, numwin INT, numdraw INT, numloose INT, realplayerid INT, normalizedname VARCHAR(30), UNIQUE(normalizedname))
 CREATE INDEX player0 ON player (fullname)
