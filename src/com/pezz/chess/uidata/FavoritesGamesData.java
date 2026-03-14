@@ -10,7 +10,7 @@ package com.pezz.chess.uidata;
 
 import com.pezz.chess.base.FavoriteType;
 
-public class FavoriteGamesData
+public class FavoritesGamesData
 {
    private int iId;
    private int iValuationRate;

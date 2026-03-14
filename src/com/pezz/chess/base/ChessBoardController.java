@@ -13,11 +13,11 @@ import java.math.BigInteger;
 import com.pezz.chess.board.ChessBoard;
 import com.pezz.chess.board.Square;
 import com.pezz.chess.db.bean.ChessEcoBean;
-import com.pezz.chess.db.bean.FavoriteGamesBean;
+import com.pezz.chess.db.bean.FavoritesGamesBean;
 import com.pezz.chess.db.bean.GameHeaderBean;
 import com.pezz.chess.db.bean.PlayerBean;
 import com.pezz.chess.db.table.ChessEco;
-import com.pezz.chess.db.table.FavoriteGames;
+import com.pezz.chess.db.table.FavoritesGames;
 import com.pezz.chess.db.table.GameHeader;
 import com.pezz.chess.db.table.Player;
 import com.pezz.chess.db.table.PositionNote;
@@ -25,7 +25,7 @@ import com.pezz.chess.pieces.ChessBoardPiece;
 import com.pezz.chess.pieces.ChessPiece;
 import com.pezz.chess.ui.SquareUI;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.PositionNoteData;
 import com.pezz.util.itn.SQLConnection;
@@ -330,16 +330,19 @@ public class ChessBoardController implements Serializable
       return iChessBoard.isGameSaved();
    }
 
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData) throws Exception
+   public int persistGame(ChessBoardHeaderData aChessBoardHeaderData) throws Exception
    {
       iChessBoard.setChessBoardHeaderData(aChessBoardHeaderData);
-      iChessBoard.persistGame(iGameController.getSqlConnection());
+      return iChessBoard.persistGame(iGameController.getSqlConnection());
    }
 
-   protected void reviewGame(GameController aGameController, int aGameHeaderId) throws Exception
+   protected void reviewGame(GameController aGameController, int aGameHeaderId, boolean aNewGame) throws Exception
    {
       iGameStatus = GameStatus.REVIEWGAME;
-      iChessBoard = new ChessBoard(aGameController);
+      if (aNewGame)
+      {
+         iChessBoard = new ChessBoard(aGameController);
+      }
       iChessBoard.reviewGame(aGameHeaderId);
    }
 
@@ -359,6 +362,7 @@ public class ChessBoardController implements Serializable
       vData.setWhiteElo(String.valueOf(vWhite.getHigherElo()));
       vData.setBlackPlayer(vBlack.getFullName());
       vData.setBlackElo(String.valueOf(vBlack.getHigherElo()));
+      vData.setEvent(vBean.getEventName());
       if (vBean.getEventDate() != null)
       {
          vData.setDate(ChessFormatter.formatDate(vBean.getEventDate()));
@@ -368,20 +372,20 @@ public class ChessBoardController implements Serializable
       ChessEcoBean vEcoBean = vChessEco.getById(vBean.getChessEcoId());
       vData.setECO(vEcoBean.getCode());
       vData.setGameResult(GameResult.fromDBValue(vBean.getFinalResult()).getPgnString());
-      FavoriteGames vFavoriteGames = new FavoriteGames(aSqlConnection);
-      FavoriteGamesBean vFavoriteGamesBean = vFavoriteGames.getById(aGameHeaderId);
-      if (vFavoriteGamesBean == null)
+      FavoritesGames vFavoritesGames = new FavoritesGames(aSqlConnection);
+      FavoritesGamesBean vFavoritesGamesBean = vFavoritesGames.getById(aGameHeaderId);
+      if (vFavoritesGamesBean == null)
       {
-         FavoriteGamesData vFavoriteGamesData = new FavoriteGamesData();
-         vFavoriteGamesData.setId(aGameHeaderId);
-         vFavoriteGamesData.setFavoriteType(FavoriteType.ADD);
-         vData.setFavoriteGamesData(vFavoriteGamesData);
+         FavoritesGamesData vFavoritesGamesData = new FavoritesGamesData();
+         vFavoritesGamesData.setId(aGameHeaderId);
+         vFavoritesGamesData.setFavoriteType(FavoriteType.ADD);
+         vData.setFavoritesGamesData(vFavoritesGamesData);
       }
       else
       {
-         FavoriteGamesData vFavoriteGamesData = vFavoriteGamesBean.toFavoriteGamesData();
-         vFavoriteGamesData.setFavoriteType(FavoriteType.REMOVE);
-         vData.setFavoriteGamesData(vFavoriteGamesData);
+         FavoritesGamesData vFavoritesGamesData = vFavoritesGamesBean.toFavoritesGamesData();
+         vFavoritesGamesData.setFavoriteType(FavoriteType.REMOVE);
+         vData.setFavoritesGamesData(vFavoritesGamesData);
       }
       // endp3
       return vData;
@@ -422,10 +426,9 @@ public class ChessBoardController implements Serializable
       return iChessBoard.canDoNext();
    }
 
-   public void deleteGame()
+   public String deleteGame()
    {
-      iChessBoard.deleteGame();
-      closeGame();
+      return iChessBoard.deleteGame();
    }
 
    public GameStatus getPreviousStatus()

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.pezz.chess.base.ChessColor;
@@ -31,7 +32,7 @@ import com.pezz.chess.base.NoteType;
 import com.pezz.chess.db.bean.BoardPositionBean;
 import com.pezz.chess.db.bean.ChessEcoBean;
 import com.pezz.chess.db.bean.CombinationBean;
-import com.pezz.chess.db.bean.FavoriteGamesBean;
+import com.pezz.chess.db.bean.FavoritesGamesBean;
 import com.pezz.chess.db.bean.FuturePositionBean;
 import com.pezz.chess.db.bean.GameDetailBean;
 import com.pezz.chess.db.bean.GameHeaderBean;
@@ -187,6 +188,14 @@ public abstract class ANSIDBPersistence implements Persistable
             id = ?
          """;
    //
+   private static String iSqlPlayerStatisticsUpdate = """
+         UPDATE player SET  numwin = ?,
+            numdraw = ?,
+            numloose = ?
+         WHERE
+            id = ?
+         """;
+   //
    private static String iSqlPlayerDelete = "DELETE FROM player WHERE id = ?";
    //
    private static String iSqlGetPlayerById = "SELECT * FROM player WHERE id = ?";
@@ -234,10 +243,10 @@ public abstract class ANSIDBPersistence implements Persistable
    //
    private static String iSqlChessEcoById = "SELECT * FROM chesseco WHERE id = ?";
    //
-   // favoritegames
+   // favoritesgames
    //
-   private static String iSqlFavoriteGamesInsert = """
-         INSERT INTO favoritegames
+   private static String iSqlFavoritesGamesInsert = """
+         INSERT INTO favoritesgames
          (
             gameheaderid,
             valuationrate
@@ -249,14 +258,14 @@ public abstract class ANSIDBPersistence implements Persistable
          )
          """;
    //
-   private static String iSqlFavoriteGamesUpdate = """
-         UPDATE favoritegames SET valuationrate = ?
+   private static String iSqlFavoritesGamesUpdate = """
+         UPDATE favoritesgames SET valuationrate = ?
          WHERE gameheaderid = ?
          """;
    //
-   private static String iSqlFavoriteGamesDelete = "DELETE FROM favoritegames WHERE gameheaderid = ?";
+   private static String iSqlFavoritesGamesDelete = "DELETE FROM favoritesgames WHERE gameheaderid = ?";
    //
-   private static String iSqlGetFavoriteGameByGameHeaderId = "SELECT * FROM favoritesgames WHERE gameheaderid = ?";
+   private static String iSqlGetFavoritesGameByGameHeaderId = "SELECT * FROM favoritesgames WHERE gameheaderid = ?";
    //
    // futureposition
    //
@@ -402,6 +411,16 @@ public abstract class ANSIDBPersistence implements Persistable
    //
    private static String iSqlGetGameHeaderToBuildStatistics = "SELECT * FROM gameheader WHERE gameinstats = 0 LIMIT 5000";
    //
+   private static String iSqlChessEcoInOtherGames = "SELECT id FROM gameheader WHERE chessecoid = ? and id <> ? LIMIT 1";
+   //
+   private static String iSqlPlayerInOtherGames = "SELECT id FROM gameheader WHERE ( whiteplayerid = ? or blackplayerid = ? ) and id <> ? LIMIT 1";
+   //
+   private static String iSqlFuturePositionInOtherGames = "SELECT id FROM gamedetail WHERE futurepositionid = ? AND gameheaderid <> ? LIMIT 1";
+   //
+   private static String iSqlBoardPositionInOtherGames = "SELECT id FROM futureposition WHERE id <> ? AND ( positionfrom = ? OR positionto = ?) LIMIT 1";
+   //
+   //
+   //
    // playeralias
    //
    private static String iSqlPlayerAliasInsert = """
@@ -475,7 +494,7 @@ public abstract class ANSIDBPersistence implements Persistable
 
    //
    @Override
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
+   public int persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
          ChessColor aInitialColorToMove, ArrayList<MoveResult> aMoveResults,
          HashMap<BigInteger, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
          throws Exception
@@ -512,6 +531,7 @@ public abstract class ANSIDBPersistence implements Persistable
             }
          }
          aConnection.getConnection().commit();
+         return vGameHeaderBean.getId();
       }
       catch (Exception e)
       {
@@ -675,8 +695,13 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public PlayerBean getPlayerById(int aId, SQLConnection aConnection) throws Exception
    {
+      return getPlayerById(aId, aConnection.getConnection());
+   }
+
+   protected PlayerBean getPlayerById(int aId, Connection aConnection) throws Exception
+   {
       PlayerBean vPlayerBean = null;
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetPlayerById()))
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetPlayerById()))
       {
          vPs.setInt(1, aId);
          try (ResultSet vRS = vPs.executeQuery())
@@ -798,9 +823,14 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void updatePlayer(PlayerBean aBean, SQLConnection aConnection) throws Exception
    {
+      updatePlayer(aBean, aConnection.getConnection());
+   }
+
+   protected void updatePlayer(PlayerBean aBean, Connection aConnection) throws Exception
+   {
       String vPlayerCleanedFullName = cleanPlayerFullName(aBean.getFullName());
       String vPlayerNormalizedFullName = normalizePlayerFullName(vPlayerCleanedFullName);
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlPlayerUpdate()))
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlPlayerUpdate()))
       {
          vPs.setString(1, vPlayerCleanedFullName);
          vPs.setInt(2, aBean.getHigherElo());
@@ -817,10 +847,29 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deletePlayer(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlPlayerDelete()))
+      deletePlayer(aId, aConnection.getConnection());
+   }
+
+   protected void deletePlayer(int aId, Connection aConnection) throws Exception
+   {
+      if (aId == 1)
       {
-         vPs.setInt(1, aId);
-         vPs.executeUpdate();
+         try (PreparedStatement vStmt = aConnection.prepareStatement(getSqlBoardPositionDelete()))
+         {
+            vStmt.setInt(1, 0);
+            vStmt.setInt(2, 0);
+            vStmt.setInt(3, 0);
+            vStmt.setInt(4, 1);
+            vStmt.executeUpdate();
+         }
+      }
+      else
+      {
+         try (PreparedStatement vPs = aConnection.prepareStatement(getSqlPlayerDelete()))
+         {
+            vPs.setInt(1, aId);
+            vPs.executeUpdate();
+         }
       }
    }
 
@@ -1065,7 +1114,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deleteBoardPosition(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlBoardPositionDelete()))
+      deleteBoardPosition(aId, aConnection.getConnection());
+   }
+
+   protected void deleteBoardPosition(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlBoardPositionDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -1266,7 +1320,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deleteChessEco(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlChessEcoDelete()))
+      deleteChessEco(aId, aConnection.getConnection());
+   }
+
+   protected void deleteChessEco(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlChessEcoDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -1274,9 +1333,9 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public FavoriteGamesBean insertFavoriteGames(FavoriteGamesBean aBean, SQLConnection aConnection) throws Exception
+   public FavoritesGamesBean insertFavoritesGames(FavoritesGamesBean aBean, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFavoriteGamesInsert()))
+      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFavoritesGamesInsert()))
       {
          vPs.setInt(1, aBean.getId());
          vPs.setInt(2, aBean.getValuationRate());
@@ -1286,9 +1345,9 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public void updateFavoriteGames(FavoriteGamesBean aBean, SQLConnection aConnection) throws Exception
+   public void updateFavoritesGames(FavoritesGamesBean aBean, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFavoriteGamesUpdate()))
+      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFavoritesGamesUpdate()))
       {
          vPs.setInt(1, aBean.getValuationRate());
          vPs.setInt(2, aBean.getId());
@@ -1297,9 +1356,14 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public void deleteFavoriteGames(int aId, SQLConnection aConnection) throws Exception
+   public void deleteFavoritesGames(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFavoriteGamesDelete()))
+      deleteFavoritesGames(aId, aConnection.getConnection());
+   }
+
+   protected void deleteFavoritesGames(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlFavoritesGamesDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -1322,7 +1386,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deleteFuturePosition(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlFuturePositionDelete()))
+      deleteFuturePosition(aId, aConnection.getConnection());
+   }
+
+   protected void deleteFuturePosition(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlFuturePositionDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -1415,7 +1484,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deleteGameDetail(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGameDetailDelete()))
+      deleteGameDetail(aId, aConnection.getConnection());
+   }
+
+   protected void deleteGameDetail(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGameDetailDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -1426,8 +1500,14 @@ public abstract class ANSIDBPersistence implements Persistable
    public ArrayList<GameDetailBean> getGameDetailByGameHeaderId(int aGameHeaderId, SQLConnection aConnection)
          throws Exception
    {
+      return getGameDetailByGameHeaderId(aGameHeaderId, aConnection.getConnection());
+   }
+
+   protected ArrayList<GameDetailBean> getGameDetailByGameHeaderId(int aGameHeaderId, Connection aConnection)
+         throws Exception
+   {
       ArrayList<GameDetailBean> vList = new ArrayList<>();
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetGameDetailByGameHeaderId()))
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetGameDetailByGameHeaderId()))
       {
          vPs.setInt(1, aGameHeaderId);
          try (ResultSet vRs = vPs.executeQuery())
@@ -1548,7 +1628,8 @@ public abstract class ANSIDBPersistence implements Persistable
          vPS.setInt(10, aBean.getStartingMoveNr());
          vPS.setInt(11, aBean.getStartingColorToMove().getValue());
          vPS.setString(12, aBean.getGameHash());
-         vPS.setInt(13, aBean.getId());
+         vPS.setInt(13, aBean.getGameInStat());
+         vPS.setInt(14, aBean.getId());
          vPS.executeUpdate();
       }
    }
@@ -1556,7 +1637,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deleteGameHeader(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPS = aConnection.getConnection().prepareStatement(getSqlGameHeaderDelete()))
+      deleteGameHeader(aId, aConnection.getConnection());
+   }
+
+   protected void deleteGameHeader(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPS = aConnection.prepareStatement(getSqlGameHeaderDelete()))
       {
          vPS.setInt(1, aId);
          vPS.executeUpdate();
@@ -2364,7 +2450,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deletePlayerAlias(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlPlayerAliasDelete()))
+      deletePlayerAlias(aId, aConnection.getConnection());
+   }
+
+   protected void deletePlayerAlias(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlPlayerAliasDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -2425,7 +2516,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deletePositionNote(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlPositionNoteDelete()))
+      deletePositionNote(aId, aConnection.getConnection());
+   }
+
+   protected void deletePositionNote(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlPositionNoteDelete()))
       {
          vPs.setInt(1, aId);
          vPs.executeUpdate();
@@ -2481,16 +2577,11 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public void deletePositionNoteByPositionUID(BigInteger aPositionUID, SQLConnection aConnection) throws Exception
    {
-      String vSQL = "DELETE FROM positionnote WHERE  positionid = ?";
       {
          BoardPositionBean vBoardPositionBean = getBoardPositionByUID(aPositionUID, aConnection);
          if (vBoardPositionBean != null)
          {
-            try (PreparedStatement vStmt = aConnection.getConnection().prepareStatement(vSQL))
-            {
-               vStmt.setInt(1, vBoardPositionBean.getId());
-               vStmt.executeUpdate();
-            }
+            deletePositionNote(vBoardPositionBean.getId(), aConnection);
          }
       }
    }
@@ -2532,7 +2623,7 @@ public abstract class ANSIDBPersistence implements Persistable
    }
 
    @Override
-   public FavoriteGamesBean getFavoriteGameByGameHeaderId(int aId, SQLConnection aConnection) throws Exception
+   public FavoritesGamesBean getFavoriteGameByGameHeaderId(int aId, SQLConnection aConnection) throws Exception
    {
       try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetFavoriteGameByGameHeaderId()))
       {
@@ -2541,7 +2632,7 @@ public abstract class ANSIDBPersistence implements Persistable
          {
             if (vRs.next())
             {
-               FavoriteGamesBean vBean = new FavoriteGamesBean();
+               FavoritesGamesBean vBean = new FavoritesGamesBean();
                vBean.setId(vRs.getInt(1));
                vBean.setValuationRate(vRs.getInt(2));
                return vBean;
@@ -2567,7 +2658,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public FuturePositionBean getFuturePositionById(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetFuturePositionById()))
+      return getFuturePositionById(aId, aConnection.getConnection());
+   }
+
+   protected FuturePositionBean getFuturePositionById(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetFuturePositionById()))
       {
          vPs.setInt(1, aId);
          try (ResultSet vRs = vPs.executeQuery())
@@ -2659,6 +2755,7 @@ public abstract class ANSIDBPersistence implements Persistable
                vBean.setStartingMoveNr(vRs.getInt(13));
                vBean.setStartingColorToMove(vRs.getInt(14));
                vBean.setGameHash(vRs.getString(15));
+               vBean.setGameInStat(vRs.getInt(16));
                return vBean;
             }
          }
@@ -2682,7 +2779,12 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public PlayerAliasBean getPlayerAliasById(int aId, SQLConnection aConnection) throws Exception
    {
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(getSqlGetPlayerAliasById()))
+      return getPlayerAliasById(aId, aConnection.getConnection());
+   }
+
+   protected PlayerAliasBean getPlayerAliasById(int aId, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vPs = aConnection.prepareStatement(getSqlGetPlayerAliasById()))
       {
          vPs.setInt(1, aId);
          try (ResultSet vRs = vPs.executeQuery())
@@ -2763,7 +2865,7 @@ public abstract class ANSIDBPersistence implements Persistable
    @Override
    public int recordCountFavotiteGames(SQLConnection aConnection) throws Exception
    {
-      return recordCountGeneric("favoritegames", aConnection);
+      return recordCountGeneric("favoritesgames", aConnection);
    }
 
    @Override
@@ -3067,24 +3169,24 @@ public abstract class ANSIDBPersistence implements Persistable
       return iSqlChessEcoById;
    }
 
-   public String getSqlFavoriteGamesInsert()
+   public String getSqlFavoritesGamesInsert()
    {
-      return iSqlFavoriteGamesInsert;
+      return iSqlFavoritesGamesInsert;
    }
 
-   public String getSqlFavoriteGamesUpdate()
+   public String getSqlFavoritesGamesUpdate()
    {
-      return iSqlFavoriteGamesUpdate;
+      return iSqlFavoritesGamesUpdate;
    }
 
-   public String getSqlFavoriteGamesDelete()
+   public String getSqlFavoritesGamesDelete()
    {
-      return iSqlFavoriteGamesDelete;
+      return iSqlFavoritesGamesDelete;
    }
 
    public String getSqlGetFavoriteGameByGameHeaderId()
    {
-      return iSqlGetFavoriteGameByGameHeaderId;
+      return iSqlGetFavoritesGameByGameHeaderId;
    }
 
    public String getSqlFuturePositionUpdate()
@@ -3340,10 +3442,16 @@ public abstract class ANSIDBPersistence implements Persistable
    protected void unlinkPlayer(PlayerBean aPrimaryPlayerBean, PlayerData aPlayerData, SQLConnection aSQLConnection)
          throws Exception
    {
-      PlayerAliasBean vAliasBean = getPlayerAliasById(aPlayerData.getId(), aSQLConnection);
+      unlinkPlayer(aPrimaryPlayerBean, aPlayerData, aSQLConnection.getConnection());
+   }
+
+   protected void unlinkPlayer(PlayerBean aPrimaryPlayerBean, PlayerData aPlayerData, Connection aConnection)
+         throws Exception
+   {
+      PlayerAliasBean vAliasBean = getPlayerAliasById(aPlayerData.getId(), aConnection);
       if (vAliasBean != null)
       {
-         PlayerBean vLinkedPlayerBean = getPlayerById(aPlayerData.getId(), aSQLConnection);
+         PlayerBean vLinkedPlayerBean = getPlayerById(aPlayerData.getId(), aConnection);
          aPrimaryPlayerBean.setNumWin(aPrimaryPlayerBean.getNumWin() - vAliasBean.getNumWin());
          aPrimaryPlayerBean.setNumDraw(aPrimaryPlayerBean.getNumDraw() - vAliasBean.getNumDraw());
          aPrimaryPlayerBean.setNumLoose(aPrimaryPlayerBean.getNumLoose() - vAliasBean.getNumLoose());
@@ -3351,8 +3459,8 @@ public abstract class ANSIDBPersistence implements Persistable
          vLinkedPlayerBean.setNumDraw(vAliasBean.getNumDraw());
          vLinkedPlayerBean.setNumLoose(vAliasBean.getNumLoose());
          vLinkedPlayerBean.setRealPlayerId(0);
-         updatePlayer(vLinkedPlayerBean, aSQLConnection);
-         deletePlayerAlias(vAliasBean.getId(), aSQLConnection);
+         updatePlayer(vLinkedPlayerBean, aConnection);
+         deletePlayerAlias(vAliasBean.getId(), aConnection);
       }
    }
 
@@ -3375,8 +3483,385 @@ public abstract class ANSIDBPersistence implements Persistable
          vLinkedPlayerBean.setNumWin(0);
          vLinkedPlayerBean.setNumDraw(0);
          vLinkedPlayerBean.setNumLoose(0);
-         vLinkedPlayerBean.setRealPlayerId(aPlayerData.getId());
+         vLinkedPlayerBean.setRealPlayerId(aPrimaryPlayerBean.getId());
          updatePlayer(vLinkedPlayerBean, aSQLConnection);
       }
+   }
+
+   @Override
+   public void deleteGame(int aGameHeaderId, SQLConnection aSQLConnection) throws Exception
+   {
+      Connection vConnection = null;
+      try
+      {
+         vConnection = aSQLConnection.getConnection();
+         GameHeaderBean vHeaderBean = getGameHeaderById(aGameHeaderId, aSQLConnection);
+         if (vHeaderBean != null)
+         {
+            deleteGame(vHeaderBean, vConnection);
+            vConnection.commit();
+         }
+      }
+      catch (Exception e)
+      {
+         if (vConnection != null)
+         {
+            vConnection.rollback();
+         }
+         throw e;
+      }
+   }
+
+   protected void rollbackStatistics(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      try (PreparedStatement vStmtGameDetail = aConnection
+            .prepareStatement(SQLConnection.getDBPersistance().getSqlReadGameDetailStatistics());
+            //
+            PreparedStatement vStmtPlayerHigherElo = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlPlayerHigherElo());
+            //
+            PreparedStatement vStmtReadPlayer = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlGetPlayerById());
+            //
+            PreparedStatement vStmtReadPlayerAlias = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlGetPlayerAliasById());
+            //
+            PreparedStatement vStmtChessEcoManageStatistics = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlChessEcoManageStatistics());
+            //
+            PreparedStatement vStmtBoardPositionManageStatistics = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlBoardPositionManageStatistics());
+            //
+            PreparedStatement vStmtPlayerManageStatistics = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlPlayerManageStatistics());
+            //
+            PreparedStatement vStmtPlayerAliasManageStatistics = aConnection
+                  .prepareStatement(SQLConnection.getDBPersistance().getSqlPlayerAliasManageStatistics()))
+      {
+         //
+         GameResult vResult = GameResult.fromDBValue(aGameHeaderBean.getFinalResult());
+         int vWinWhite = vResult == GameResult.WINWHITE ? -1 : 0;
+         int vDraw = vResult == GameResult.DRAW ? -1 : 0;
+         int vWinBlack = vResult == GameResult.WINBLACK ? -1 : 0;
+         //
+         updateStatistics(vStmtGameDetail, vStmtPlayerHigherElo, vStmtReadPlayer, vStmtReadPlayerAlias,
+               vStmtChessEcoManageStatistics, vStmtBoardPositionManageStatistics, vStmtPlayerManageStatistics,
+               vStmtPlayerAliasManageStatistics, aGameHeaderBean.getId(), aGameHeaderBean.getStartingPositionId(),
+               aGameHeaderBean.getChessEcoId(), aGameHeaderBean.getWhitePlayerId(), aGameHeaderBean.getWhiteElo(),
+               aGameHeaderBean.getBlackPlayerId(), aGameHeaderBean.getBlackElo(), vWinWhite, vDraw, vWinBlack);
+      }
+   }
+
+   @Override
+   public void updateStatistics(PreparedStatement aStmtGameDetail, PreparedStatement aStmtPlayerHigherElo,
+         PreparedStatement aStmtReadPlayer, PreparedStatement aStmtReadPlayerAlias,
+         PreparedStatement aStmtChessEcoManageStatistics, PreparedStatement aStmtBoardPositionManageStatistics,
+         PreparedStatement aStmtPlayerManageStatistics, PreparedStatement aStmtPlayerAliasManageStatistics,
+         int aGameHeaderId, int aStartingPositionId, int aChessEcoId, int aWhitePlayerId, int aWhiteElo,
+         int aBlackPlayerId, int aBlackElo, int aWinWhite, int aDraw, int aWinBlack) throws Exception
+   {
+      aStmtChessEcoManageStatistics.setInt(1, aWinWhite);
+      aStmtChessEcoManageStatistics.setInt(2, aDraw);
+      aStmtChessEcoManageStatistics.setInt(3, aWinBlack);
+      aStmtChessEcoManageStatistics.setInt(4, aChessEcoId);
+      aStmtChessEcoManageStatistics.executeUpdate();
+      //
+      aStmtBoardPositionManageStatistics.setInt(1, aWinWhite);
+      aStmtBoardPositionManageStatistics.setInt(2, aDraw);
+      aStmtBoardPositionManageStatistics.setInt(3, aWinBlack);
+      aStmtBoardPositionManageStatistics.setInt(4, aStartingPositionId);
+      aStmtBoardPositionManageStatistics.executeUpdate();
+      //
+      updateBordPositions(aGameHeaderId, aStmtGameDetail, aStmtBoardPositionManageStatistics, aWinWhite, aDraw,
+            aWinBlack);
+      //
+      int vNumWin = aWinWhite;
+      int vNumDraw = aDraw;
+      int vNumLoose = aWinBlack;
+      updatePlayer(aWhitePlayerId, aWhiteElo, aStmtPlayerHigherElo, aStmtPlayerManageStatistics,
+            aStmtPlayerAliasManageStatistics, aStmtReadPlayer, aStmtReadPlayerAlias, vNumWin, vNumDraw, vNumLoose);
+      //
+      vNumWin = aWinBlack;
+      vNumDraw = aDraw;
+      vNumLoose = aWinWhite;
+      updatePlayer(aBlackPlayerId, aBlackElo, aStmtPlayerHigherElo, aStmtPlayerManageStatistics,
+            aStmtPlayerAliasManageStatistics, aStmtReadPlayer, aStmtReadPlayerAlias, vNumWin, vNumDraw, vNumLoose);
+   }
+
+   protected void updateBordPositions(int aGameHeaderId, PreparedStatement aGameDetailStatement,
+         PreparedStatement aStmtBoardPositionManageStatistics, int aWinWhite, int aDraw, int aWinBlack) throws Exception
+   {
+      Set<Integer> vPosIds = ConcurrentHashMap.newKeySet();
+      aGameDetailStatement.setInt(1, aGameHeaderId);
+      try (ResultSet vRes = aGameDetailStatement.executeQuery())
+      {
+         while (vRes.next())
+         {
+            int vId = vRes.getInt(1);
+            if (!vPosIds.contains(vId))
+            {
+               vPosIds.add(vId);
+               aStmtBoardPositionManageStatistics.setInt(1, aWinWhite);
+               aStmtBoardPositionManageStatistics.setInt(2, aDraw);
+               aStmtBoardPositionManageStatistics.setInt(3, aWinBlack);
+               aStmtBoardPositionManageStatistics.setInt(4, vRes.getInt(1));
+               aStmtBoardPositionManageStatistics.executeUpdate();
+            }
+         }
+      }
+   }
+
+   protected void updatePlayer(int aPlayerId, int aPlayerElo, PreparedStatement aStmtPlayerHigherElo,
+         PreparedStatement aStmtPlayerManageStatistics, PreparedStatement aStmtPlayerAliasManageStatistics,
+         PreparedStatement aStmtReadPlayer, PreparedStatement aStmtReadPlayerAlias, int aNumWin, int aNumDraw,
+         int aNumLoose) throws Exception
+   {
+      int vHigherElo = 0;
+      aStmtPlayerHigherElo.setInt(1, aPlayerId);
+      try (ResultSet vWhiteRs = aStmtPlayerHigherElo.executeQuery())
+      {
+         vHigherElo = vWhiteRs.getInt(1);
+      }
+      catch (Exception e)
+      {
+      }
+      vHigherElo = aPlayerElo > vHigherElo ? aPlayerElo : vHigherElo;
+      int vRealPlayerID = -1;
+      aStmtReadPlayer.setInt(1, aPlayerId);
+      try (ResultSet vMainPlayerRS = aStmtReadPlayer.executeQuery())
+      {
+         if (vMainPlayerRS.next())
+         {
+            vRealPlayerID = vMainPlayerRS.getInt(7);
+         }
+      }
+      if (vRealPlayerID > 0)
+      {
+         updatePlayerImpl(vRealPlayerID, aPlayerElo, aStmtPlayerManageStatistics, vHigherElo, aNumWin, aNumDraw,
+               aNumLoose);
+         updatePlayerAliasImpl(aPlayerId, aStmtPlayerAliasManageStatistics, vHigherElo, aNumWin, aNumDraw, aNumLoose);
+      }
+      else
+      {
+         updatePlayerImpl(aPlayerId, aPlayerElo, aStmtPlayerManageStatistics, vHigherElo, aNumWin, aNumDraw, aNumLoose);
+      }
+   }
+
+   protected void updatePlayerImpl(int aPlayerId, int aPlayerElo, PreparedStatement aStmtPlayerManageStatistics,
+         int aHigherElo, int aNumWin, int aNumDraw, int aNumLoose) throws Exception
+   {
+      aStmtPlayerManageStatistics.setInt(1, aHigherElo);
+      aStmtPlayerManageStatistics.setInt(2, aNumWin);
+      aStmtPlayerManageStatistics.setInt(3, aNumDraw);
+      aStmtPlayerManageStatistics.setInt(4, aNumLoose);
+      aStmtPlayerManageStatistics.setInt(5, aPlayerId);
+      aStmtPlayerManageStatistics.executeUpdate();
+   }
+
+   protected void updatePlayerAliasImpl(int aPlayerId, PreparedStatement aStmtPlayerAliasManageStatistics,
+         int aHigherElo, int aNumWin, int aNumDraw, int aNumLoose) throws Exception
+   {
+      aStmtPlayerAliasManageStatistics.setInt(1, aNumWin);
+      aStmtPlayerAliasManageStatistics.setInt(2, aNumDraw);
+      aStmtPlayerAliasManageStatistics.setInt(3, aNumLoose);
+      aStmtPlayerAliasManageStatistics.setInt(4, aPlayerId);
+      aStmtPlayerAliasManageStatistics.executeUpdate();
+   }
+
+   protected void deleteGame(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      unlinkPlayersIfNeeded(aGameHeaderBean, aConnection);
+      if (aGameHeaderBean.getGameInStat() == 1)
+      {
+         rollbackStatistics(aGameHeaderBean, aConnection);
+      }
+      deleteChessEcoIfNeeded(aGameHeaderBean, aConnection);
+      deletePlayersIfNeeded(aGameHeaderBean, aConnection);
+      deleteGameDetails(aGameHeaderBean, aConnection);
+      deleteFavoritesGames(aGameHeaderBean.getId(), aConnection);
+      deleteGameHeader(aGameHeaderBean.getId(), aConnection);
+   }
+
+   protected void unlinkPlayersIfNeeded(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      int vGameHeaderId = aGameHeaderBean.getId();
+      boolean vIsWhitePlayerInOtherGames = false;
+      PlayerBean vWhitePlayerBean = getPlayerById(aGameHeaderBean.getWhitePlayerId(), aConnection);
+      if (vWhitePlayerBean != null)
+      {
+         vIsWhitePlayerInOtherGames = isPlayerInOtherGames(vWhitePlayerBean, vGameHeaderId, aConnection);
+         if (!vIsWhitePlayerInOtherGames)
+         {
+            if (vWhitePlayerBean.getRealPlayerId() > 0)
+            {
+               unlinkPlayer(vWhitePlayerBean, vWhitePlayerBean.toPlayerData(), aConnection);
+            }
+         }
+      }
+      boolean vIsBlackPlayerInOtherGames = false;
+      PlayerBean vBlackPlayerBean = getPlayerById(aGameHeaderBean.getBlackPlayerId(), aConnection);
+      if (vBlackPlayerBean != null)
+      {
+         vIsBlackPlayerInOtherGames = isPlayerInOtherGames(vBlackPlayerBean, vGameHeaderId, aConnection);
+         if (!vIsBlackPlayerInOtherGames)
+         {
+            if (vBlackPlayerBean.getRealPlayerId() > 0)
+            {
+               unlinkPlayer(vBlackPlayerBean, vBlackPlayerBean.toPlayerData(), aConnection);
+            }
+         }
+      }
+   }
+
+   protected void deleteGameDetails(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      int vGameHeaderId = aGameHeaderBean.getId();
+      ArrayList<GameDetailBean> vList = getGameDetailByGameHeaderId(vGameHeaderId, aConnection);
+      for (GameDetailBean vGameDetailBean : vList)
+      {
+         boolean vFuturePositionDeleted = false;
+         int vFuturePositionId = vGameDetailBean.getFuturePositionId();
+         FuturePositionBean vFuturePositionBean = getFuturePositionById(vFuturePositionId, aConnection);
+         try (PreparedStatement vStmtFuturePositionInOtherGames = aConnection
+               .prepareStatement(getSqlFuturePositionInOtherGames()))
+         {
+            vStmtFuturePositionInOtherGames.setInt(1, vFuturePositionId);
+            vStmtFuturePositionInOtherGames.setInt(2, vGameHeaderId);
+            try (ResultSet vResFuturePositionInOtherGames = vStmtFuturePositionInOtherGames.executeQuery())
+            {
+               if (!vResFuturePositionInOtherGames.next())
+               {
+                  deleteFuturePosition(vFuturePositionId, aConnection);
+                  vFuturePositionDeleted = true;
+               }
+            }
+         }
+         if (vFuturePositionDeleted)
+         {
+            if (!isBoardPositionInOtherGames(vFuturePositionId, vFuturePositionBean.getPositionFrom(), aConnection))
+            {
+               deleteBoardPosition(vFuturePositionBean.getPositionFrom(), aConnection);
+               deletePositionNote(vFuturePositionBean.getPositionFrom(), aConnection);
+            }
+            if (!isBoardPositionInOtherGames(vFuturePositionId, vFuturePositionBean.getPositionTo(), aConnection))
+            {
+               deleteBoardPosition(vFuturePositionBean.getPositionTo(), aConnection);
+               deletePositionNote(vFuturePositionBean.getPositionTo(), aConnection);
+            }
+         }
+         deleteGameDetail(vGameDetailBean.getId(), aConnection);
+      }
+   }
+
+   protected boolean isBoardPositionInOtherGames(int aFuturePositionId, int aBoardPositionId, Connection aConnection)
+         throws Exception
+   {
+      try (PreparedStatement vStatement = aConnection.prepareStatement(getSqlBoardPositionInOtherGames()))
+      {
+         vStatement.setInt(1, aFuturePositionId);
+         vStatement.setInt(2, aBoardPositionId);
+         vStatement.setInt(3, aBoardPositionId);
+         try (ResultSet vResultSet = vStatement.executeQuery())
+         {
+            return vResultSet.next();
+         }
+      }
+   }
+
+   protected void deletePlayersIfNeeded(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      int vGameHeaderId = aGameHeaderBean.getId();
+      PlayerBean vWhitePlayerBean = getPlayerById(aGameHeaderBean.getWhitePlayerId(), aConnection);
+      if (vWhitePlayerBean != null && !isPlayerInOtherGames(vWhitePlayerBean, vGameHeaderId, aConnection))
+      {
+         deletePlayer(vWhitePlayerBean.getId(), aConnection);
+      }
+      PlayerBean vBlackPlayerBean = getPlayerById(aGameHeaderBean.getBlackPlayerId(), aConnection);
+      if (vBlackPlayerBean != null && !isPlayerInOtherGames(vBlackPlayerBean, vGameHeaderId, aConnection))
+      {
+         deletePlayer(vBlackPlayerBean.getId(), aConnection);
+      }
+   }
+
+   protected void deleteChessEcoIfNeeded(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      if (!isChessEcoInOtherGames(aGameHeaderBean, aConnection))
+      {
+         int vChessEcoId = aGameHeaderBean.getChessEcoId();
+         if (vChessEcoId == 1)
+         {
+            try (PreparedStatement vStmt = aConnection.prepareStatement(getSqlChessEcoUpdate()))
+            {
+               vStmt.setInt(1, 0);
+               vStmt.setInt(2, 0);
+               vStmt.setInt(3, 0);
+               vStmt.setInt(4, 1);
+               vStmt.executeUpdate();
+            }
+         }
+         else
+         {
+            deleteChessEco(vChessEcoId, aConnection);
+         }
+      }
+   }
+
+   protected boolean isChessEcoInOtherGames(GameHeaderBean aGameHeaderBean, Connection aConnection) throws Exception
+   {
+      int vGameHeaderId = aGameHeaderBean.getId();
+      try (PreparedStatement vStmtChessEcoInOtherGames = aConnection.prepareStatement(getSqlChessEcoInOtherGames()))
+      {
+         vStmtChessEcoInOtherGames.setInt(1, aGameHeaderBean.getChessEcoId());
+         vStmtChessEcoInOtherGames.setInt(2, vGameHeaderId);
+         try (ResultSet vRes = vStmtChessEcoInOtherGames.executeQuery())
+         {
+            return vRes.next();
+         }
+      }
+   }
+
+   protected boolean isPlayerInOtherGames(PlayerBean aPlayerBean, int aGameHeaderId, Connection aConnection)
+         throws Exception
+   {
+      try (PreparedStatement vStmt = aConnection.prepareStatement(getSqlPlayerInOtherGames()))
+      {
+         vStmt.setInt(1, aPlayerBean.getId());
+         vStmt.setInt(2, aPlayerBean.getId());
+         vStmt.setInt(3, aGameHeaderId);
+         try (ResultSet vRes = vStmt.executeQuery())
+         {
+            return vRes.next();
+         }
+      }
+   }
+
+   @Override
+   public String getSqlChessEcoInOtherGames()
+   {
+      return iSqlChessEcoInOtherGames;
+   }
+
+   @Override
+   public String getSqlPlayerInOtherGames()
+   {
+      return iSqlPlayerInOtherGames;
+   }
+
+   @Override
+   public String getSqlBoardPositionInOtherGames()
+   {
+      return iSqlBoardPositionInOtherGames;
+   }
+
+   @Override
+   public String getSqlFuturePositionInOtherGames()
+   {
+      return iSqlFuturePositionInOtherGames;
+   }
+
+   @Override
+   public String getSqlPlayerStatisticsUpdate()
+   {
+      return iSqlPlayerStatisticsUpdate;
    }
 }

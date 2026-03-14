@@ -762,11 +762,11 @@ public class ChessBoard implements Cloneable
       return iChessPosition.toString();
    }
 
-   public void persistGame(SQLConnection aConnection) throws Exception
+   public int persistGame(SQLConnection aConnection) throws Exception
    {
       String vHash = iGameHistory.gameHash();
       iChessBoardHeaderData.setGameHash(vHash);
-      iGameHistory.persistGame(iChessBoardHeaderData, aConnection);
+      return iGameHistory.persistGame(iChessBoardHeaderData, aConnection);
    }
 
    public void persistPgnGame(String aGameHash, int aGameNr, SQLConnection aConnection) throws Exception
@@ -924,9 +924,9 @@ public class ChessBoard implements Cloneable
       return iGameHistory.canDoNext();
    }
 
-   public void deleteGame()
+   public String deleteGame()
    {
-      iGameHistory.deleteGame();
+      return iGameHistory.deleteGame();
    }
 
    public PositionNoteData getPositionNote()

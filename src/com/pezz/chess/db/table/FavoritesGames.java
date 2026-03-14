@@ -9,14 +9,14 @@
 package com.pezz.chess.db.table;
 
 import com.pezz.chess.base.ChessResources;
-import com.pezz.chess.db.bean.FavoriteGamesBean;
+import com.pezz.chess.db.bean.FavoritesGamesBean;
 import com.pezz.util.itn.SQLConnection;
 
-public class FavoriteGames extends BaseChessTable<FavoriteGamesBean>
+public class FavoritesGames extends BaseChessTable<FavoritesGamesBean>
 {
    private static final long serialVersionUID = -973987802212267274L;
 
-   public FavoriteGames(SQLConnection aConnection)
+   public FavoritesGames(SQLConnection aConnection)
    {
       super(aConnection);
    }
@@ -34,25 +34,25 @@ public class FavoriteGames extends BaseChessTable<FavoriteGamesBean>
    }
 
    @Override
-   public FavoriteGamesBean insert(FavoriteGamesBean aBean) throws Exception
+   public FavoritesGamesBean insert(FavoritesGamesBean aBean) throws Exception
    {
-      return SQLConnection.getDBPersistance().insertFavoriteGames(aBean, iSQLConnection);
+      return SQLConnection.getDBPersistance().insertFavoritesGames(aBean, iSQLConnection);
    }
 
    @Override
-   public void update(FavoriteGamesBean aBean) throws Exception
+   public void update(FavoritesGamesBean aBean) throws Exception
    {
-      SQLConnection.getDBPersistance().updateFavoriteGames(aBean, iSQLConnection);
+      SQLConnection.getDBPersistance().updateFavoritesGames(aBean, iSQLConnection);
    }
 
    @Override
    public void delete(int aId) throws Exception
    {
-      SQLConnection.getDBPersistance().deleteFavoriteGames(aId, iSQLConnection);
+      SQLConnection.getDBPersistance().deleteFavoritesGames(aId, iSQLConnection);
    }
 
    @Override
-   public FavoriteGamesBean getById(int aId) throws Exception
+   public FavoritesGamesBean getById(int aId) throws Exception
    {
       return SQLConnection.getDBPersistance().getFavoriteGameByGameHeaderId(aId, iSQLConnection);
    }

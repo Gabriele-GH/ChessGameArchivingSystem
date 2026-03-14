@@ -30,7 +30,7 @@ public class ChessBoardHeaderData
    private ECOCode iECO;
    private GameResult iGameResult;
    private static final SimpleDateFormat iPgnDateFormat = new SimpleDateFormat("yyyy.MM.dd");
-   private FavoriteGamesData iFavoriteGamesData;
+   private FavoritesGamesData iFavoritesGamesData;
    private String iGameHash;
    private int iGameNr;
 
@@ -47,7 +47,7 @@ public class ChessBoardHeaderData
       iBlackElo = null;
       iECO = null;
       iGameResult = null;
-      iFavoriteGamesData = null;
+      iFavoritesGamesData = null;
       iGameHash = null;
    }
 
@@ -308,14 +308,14 @@ public class ChessBoardHeaderData
       }
    }
 
-   public FavoriteGamesData getFavoriteGamesData()
+   public FavoritesGamesData getFavoritesGamesData()
    {
-      return iFavoriteGamesData;
+      return iFavoritesGamesData;
    }
 
-   public void setFavoriteGamesData(FavoriteGamesData aFavoriteGamesData)
+   public void setFavoritesGamesData(FavoritesGamesData aFavoritesGamesData)
    {
-      iFavoriteGamesData = aFavoriteGamesData;
+      iFavoritesGamesData = aFavoritesGamesData;
    }
 
    public String getGameHash()

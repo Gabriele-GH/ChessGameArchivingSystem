@@ -21,7 +21,7 @@ import com.pezz.chess.base.MoveResult;
 import com.pezz.chess.db.bean.BoardPositionBean;
 import com.pezz.chess.db.bean.ChessEcoBean;
 import com.pezz.chess.db.bean.CombinationBean;
-import com.pezz.chess.db.bean.FavoriteGamesBean;
+import com.pezz.chess.db.bean.FavoritesGamesBean;
 import com.pezz.chess.db.bean.FuturePositionBean;
 import com.pezz.chess.db.bean.GameDetailBean;
 import com.pezz.chess.db.bean.GameHeaderBean;
@@ -39,7 +39,7 @@ import com.pezz.util.itn.SQLConnection;
 
 public interface Persistable
 {
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
+   public int persistGame(ChessBoardHeaderData aChessBoardHeaderData, BigInteger aInitialPosition, int aInitialMoveNr,
          ChessColor aInitialColorToMove, ArrayList<MoveResult> aMoveResults,
          HashMap<BigInteger, PositionNoteData> aPositionNotes, boolean aIsPgn, SQLConnection aConnection)
          throws Exception;
@@ -92,11 +92,11 @@ public interface Persistable
 
    public void deleteChessEco(int aId, SQLConnection aConnection) throws Exception;
 
-   public FavoriteGamesBean insertFavoriteGames(FavoriteGamesBean aBean, SQLConnection aConnection) throws Exception;
+   public FavoritesGamesBean insertFavoritesGames(FavoritesGamesBean aBean, SQLConnection aConnection) throws Exception;
 
-   public void updateFavoriteGames(FavoriteGamesBean aBean, SQLConnection aConnection) throws Exception;
+   public void updateFavoritesGames(FavoritesGamesBean aBean, SQLConnection aConnection) throws Exception;
 
-   public void deleteFavoriteGames(int aId, SQLConnection aConnection) throws Exception;
+   public void deleteFavoritesGames(int aId, SQLConnection aConnection) throws Exception;
 
    public FuturePositionBean insertFuturePosition(FuturePositionBean aBean, SQLConnection aConnection) throws Exception;
 
@@ -155,9 +155,6 @@ public interface Persistable
    public boolean existsGameHeaderPlayerInOtherHeaders(int aGameHeaderId, int aPlayerId, SQLConnection aConnection)
          throws Exception;
 
-   public boolean existsGameHeaderChessEcoInOtherHeaders(int aGameHeaderId, int aChessEcoId, SQLConnection aConnection)
-         throws Exception;
-
    public int getGameHeaderRecordCountForExportGamesToPgn(int aPlayerId, ChessColor aColor, boolean aOnlyFavorites,
          GameResult aGameResult, boolean aWinByPlayer, boolean aLossByPlayer, String aChessECOCode, String aEvent,
          String aSite, java.sql.Date aEventDateFrom, java.sql.Date aEventDateTo, SQLConnection aConnection)
@@ -197,7 +194,7 @@ public interface Persistable
 
    public boolean existsChessEco(int aId, SQLConnection aConnection) throws Exception;
 
-   public FavoriteGamesBean getFavoriteGameByGameHeaderId(int aId, SQLConnection aConnection) throws Exception;
+   public FavoritesGamesBean getFavoriteGameByGameHeaderId(int aId, SQLConnection aConnection) throws Exception;
 
    public boolean existsFavoriteGame(int aId, SQLConnection aConnection) throws Exception;
 
@@ -296,4 +293,23 @@ public interface Persistable
    public int getDefaultDatabasePortNr();
 
    public String buildJDBCUrl(String aIPAddress, int aDBPortNr, String aDBUserName, String aDatabaseName);
+
+   public void deleteGame(int aGameId, SQLConnection aConnection) throws Exception;
+
+   public void updateStatistics(PreparedStatement aStmtGameDetail, PreparedStatement aStmtPlayerHigherElo,
+         PreparedStatement aStmtReadPlayer, PreparedStatement aStmtReadPlayerAlias,
+         PreparedStatement aStmtChessEcoManageStatistics, PreparedStatement aStmtBoardPositionManageStatistics,
+         PreparedStatement aStmtPlayerManageStatistics, PreparedStatement aStmtPlayerAliasManageStatistics,
+         int aGameHeaderId, int aStartingPositionId, int aChessEcoId, int aWhitePlayerId, int aWhiteElo,
+         int aBlackPlayerId, int aBlackElo, int aWinWhite, int aDraw, int aWinBlack) throws Exception;
+
+   public String getSqlChessEcoInOtherGames();
+
+   public String getSqlPlayerInOtherGames();
+
+   public String getSqlFuturePositionInOtherGames();
+
+   public String getSqlBoardPositionInOtherGames();
+
+   public String getSqlPlayerStatisticsUpdate();
 }

@@ -23,7 +23,7 @@ import javax.swing.SpinnerNumberModel;
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.base.FavoriteType;
 import com.pezz.chess.ui.UIController;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 
 public class FavoritesUIPicker extends JPopupMenu implements ActionListener
 {
@@ -33,7 +33,7 @@ public class FavoritesUIPicker extends JPopupMenu implements ActionListener
    private JButton iBtnRemove;
    private JButton iBtnCancel;
    private boolean iCanClose;
-   private FavoriteGamesData iFavoritesGamesData;
+   private FavoritesGamesData iFavoritesGamesData;
    UIController iUIController;
 
    public FavoritesUIPicker(UIController aUiController)
@@ -77,17 +77,17 @@ public class FavoritesUIPicker extends JPopupMenu implements ActionListener
       add(vPnlMain);
    }
 
-   public FavoriteGamesData getFavoritesGamesData()
+   public FavoritesGamesData getFavoritesGamesData()
    {
       return iFavoritesGamesData;
    }
 
-   public void setFavoriteGameData(FavoriteGamesData aFavoriteGamesData)
+   public void setFavoriteGameData(FavoritesGamesData aFavoritesGamesData)
    {
       iCanClose = false;
-      iFavoritesGamesData = aFavoriteGamesData;
+      iFavoritesGamesData = aFavoritesGamesData;
       iBtnRemove.setEnabled(iFavoritesGamesData.getFavoriteType() == FavoriteType.REMOVE);
-      iSpnRating.setValue(aFavoriteGamesData.getValuationRate());
+      iSpnRating.setValue(aFavoritesGamesData.getValuationRate());
    }
 
    @Override

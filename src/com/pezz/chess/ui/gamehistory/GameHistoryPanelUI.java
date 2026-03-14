@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -233,5 +232,10 @@ public class GameHistoryPanelUI extends JPanel implements MouseListener, MouseMo
       GameHistoryData vData = iUIController.getGameHistoryData();
       ((GameHistoryTableModel) iTblMove.getModel()).setGameHistoryData(vData);
       iTblMove.repaint();
+   }
+
+   public void setGameStatus(GameStatus aStatus)
+   {
+      iGameStatus = aStatus;
    }
 }

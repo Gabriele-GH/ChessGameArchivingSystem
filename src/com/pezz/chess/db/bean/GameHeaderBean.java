@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -28,6 +27,7 @@ public class GameHeaderBean extends PersistentChessBean
    private int iStartingMoveNr;
    private ChessColor iStartingColorToMove;
    private String iGameHash;
+   private int iGameInStat;
 
    public int getWhitePlayerId()
    {
@@ -172,6 +172,16 @@ public class GameHeaderBean extends PersistentChessBean
    public void setGameHash(String aGameHash)
    {
       iGameHash = aGameHash;
+   }
+
+   public int getGameInStat()
+   {
+      return iGameInStat;
+   }
+
+   public void setGameInStat(int aGameInStat)
+   {
+      iGameInStat = aGameInStat;
    }
    // public static GameHeaderBean fromResultSet(ResultSet aResultSet) throws Exception
    // {

@@ -25,9 +25,9 @@ import javax.swing.JOptionPane;
 
 import com.pezz.chess.board.Square;
 import com.pezz.chess.db.bean.CombinationBean;
-import com.pezz.chess.db.bean.FavoriteGamesBean;
+import com.pezz.chess.db.bean.FavoritesGamesBean;
 import com.pezz.chess.db.bean.PlayerBean;
-import com.pezz.chess.db.table.FavoriteGames;
+import com.pezz.chess.db.table.FavoritesGames;
 import com.pezz.chess.db.table.FuturePosition;
 import com.pezz.chess.db.table.GameHeader;
 import com.pezz.chess.db.table.Player;
@@ -42,7 +42,7 @@ import com.pezz.chess.preferences.ChessPreferences;
 import com.pezz.chess.statistics.StatistsThread;
 import com.pezz.chess.ui.SquareUI;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.GeneralStatisticData;
 import com.pezz.chess.uidata.PagingBeanList;
@@ -275,18 +275,30 @@ public class GameController implements Serializable
       return aActiveGameId == null ? iLastKey : aActiveGameId;
    }
 
-   public GameId deleteGame(GameId aGameId, GameId aActiveGameId)
+   public DeleteGameResult deleteGame(GameId aGameId, GameId aActiveGameId)
    {
-      iChessBoardControllers.get(aGameId).deleteGame();
-      iChessBoardControllers.remove(aGameId);
-      if (aActiveGameId == null)
+      holdStatisticsThread();
+      try
       {
-         iLastKey = new GameId();
-         iLastKey = newGame();
+         String vErr = iChessBoardControllers.get(aGameId).deleteGame();
+         if (vErr != null)
+         {
+            return new DeleteGameResult(vErr);
+         }
+         iChessBoardControllers.remove(aGameId);
+         if (aActiveGameId == null)
+         {
+            iLastKey = new GameId();
+            iLastKey = newGame();
+         }
+         iActiveController = iChessBoardControllers.get(aActiveGameId == null ? iLastKey : aActiveGameId);
+         iActiveController.refresh();
+         return new DeleteGameResult(aActiveGameId == null ? iLastKey : aActiveGameId);
       }
-      iActiveController = iChessBoardControllers.get(aActiveGameId == null ? iLastKey : aActiveGameId);
-      iActiveController.refresh();
-      return aActiveGameId == null ? iLastKey : aActiveGameId;
+      finally
+      {
+         resumeStatisticsThread();
+      }
    }
 
    public boolean isGameSaved()
@@ -343,18 +355,27 @@ public class GameController implements Serializable
             aSite, aFirstRow, aLimit);
    }
 
-   public ReviewGameData reviewGame(int aGameHeaderId)
+   public ReviewGameData reviewGame(int aGameHeaderId, boolean aNewGame)
    {
-      iLastKey = iLastKey.incrementLast();
-      ChessBoardController vController = new ChessBoardController(iLastKey, this);
-      iActiveController = vController;
-      vController.internalSetStatus(GameStatus.REVIEWGAME);
-      iChessBoardControllers.put(iLastKey, vController);
+      ChessBoardController vController = null;
+      if (aNewGame)
+      {
+         iLastKey = iLastKey.incrementLast();
+         vController = new ChessBoardController(iLastKey, this);
+         iActiveController = vController;
+         vController.internalSetStatus(GameStatus.REVIEWGAME);
+         iChessBoardControllers.put(iLastKey, vController);
+      }
+      else
+      {
+         vController = iActiveController;
+         vController.internalSetStatus(GameStatus.REVIEWGAME);
+      }
       ReviewGameData vReviewGameData = null;
       try
       {
          // beginp3 com.pezz.chess.base.GameController 2
-         vController.reviewGame(this, aGameHeaderId);
+         vController.reviewGame(this, aGameHeaderId, aNewGame);
          vReviewGameData = new ReviewGameData(iLastKey, vController.getGameHistoryData(),
                vController.getChessBoardHeaderData(getSqlConnection(), aGameHeaderId));
          // endp3
@@ -695,17 +716,18 @@ public class GameController implements Serializable
       return iActiveController.getColorToMove();
    }
 
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData)
+   public int persistGame(ChessBoardHeaderData aChessBoardHeaderData)
    {
       try
       {
          holdStatisticsThread();
-         iActiveController.persistGame(aChessBoardHeaderData);
-         setStatus(GameStatus.ANALYZE);
+         return iActiveController.persistGame(aChessBoardHeaderData);
+         // setStatus(GameStatus.REVIEWGAME);
       }
       catch (Exception e)
       {
          showErrorDialog(e);
+         return -1;
       }
       finally
       {
@@ -830,23 +852,23 @@ public class GameController implements Serializable
       iActiveController.saveNote(aPositionNoteData);
    }
 
-   public void addToFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void addToFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      if (aFavoriteGamesData.getId() > 0)
+      if (aFavoritesGamesData.getId() > 0)
       {
-         FavoriteGames vFavoriteGames = new FavoriteGames(iSQLConnection);
+         FavoritesGames vFavoritesGames = new FavoritesGames(iSQLConnection);
          try
          {
-            FavoriteGamesBean vFavoriteGamesBean = new FavoriteGamesBean();
-            vFavoriteGamesBean.setId(aFavoriteGamesData.getId());
-            vFavoriteGamesBean.setValuationRate(aFavoriteGamesData.getValuationRate());
-            if (vFavoriteGames.exists(vFavoriteGamesBean.getId()))
+            FavoritesGamesBean vFavoritesGamesBean = new FavoritesGamesBean();
+            vFavoritesGamesBean.setId(aFavoritesGamesData.getId());
+            vFavoritesGamesBean.setValuationRate(aFavoritesGamesData.getValuationRate());
+            if (vFavoritesGames.exists(vFavoritesGamesBean.getId()))
             {
-               vFavoriteGames.update(vFavoriteGamesBean);
+               vFavoritesGames.update(vFavoritesGamesBean);
             }
             else
             {
-               vFavoriteGames.insert(vFavoriteGamesBean);
+               vFavoritesGames.insert(vFavoritesGamesBean);
             }
             iSQLConnection.getConnection().commit();
          }
@@ -863,16 +885,16 @@ public class GameController implements Serializable
       }
    }
 
-   public void removeFromFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void removeFromFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      if (aFavoriteGamesData.getId() > 0)
+      if (aFavoritesGamesData.getId() > 0)
       {
-         FavoriteGames vFavoriteGames = new FavoriteGames(iSQLConnection);
+         FavoritesGames vFavoritesGames = new FavoritesGames(iSQLConnection);
          try
          {
-            if (vFavoriteGames.exists(aFavoriteGamesData.getId()))
+            if (vFavoritesGames.exists(aFavoritesGamesData.getId()))
             {
-               vFavoriteGames.delete(aFavoriteGamesData.getId());
+               vFavoritesGames.delete(aFavoritesGamesData.getId());
                iSQLConnection.getConnection().commit();
             }
          }
@@ -1122,5 +1144,10 @@ public class GameController implements Serializable
    public List<String> getSupportedDatabasesNames()
    {
       return SQLConnection.getSupportedDatabasesNames();
+   }
+
+   public void refreshCombinations()
+   {
+      iNetwork.refreshCombinations();
    }
 }

@@ -1,5 +1,6 @@
 CREATE TABLE boardposition (id INT NOT NULL AUTO_INCREMENT, positionuid DECIMAL(58, 0), winwhite INT, numdraw INT, winblack INT, PRIMARY KEY (id), UNIQUE(positionuid))
 CREATE TABLE futureposition (id INT NOT NULL AUTO_INCREMENT, positionfrom INT, movestr INT, positionto INT, PRIMARY KEY (id), UNIQUE (positionfrom, movestr))
+CREATE INDEX futureposition0 ON futureposition (positionfrom ASC, positionto ASC, id ASC)
 CREATE TABLE player (id INT NOT NULL AUTO_INCREMENT, fullname VARCHAR(30), higherelo INT, numwin INT, numdraw INT, numloose INT, realplayerid INT, normalizedname VARCHAR(30), PRIMARY KEY (id), UNIQUE(normalizedname))
 CREATE INDEX player0 ON player (fullname ASC)
 CREATE INDEX player1 ON player (realplayerid ASC)

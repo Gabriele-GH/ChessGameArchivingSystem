@@ -23,13 +23,11 @@ import com.pezz.chess.base.Hash;
 import com.pezz.chess.base.MoveResult;
 import com.pezz.chess.db.bean.BoardPositionBean;
 import com.pezz.chess.db.bean.ChessBean;
-import com.pezz.chess.db.bean.ChessEcoBean;
 import com.pezz.chess.db.bean.FuturePositionBean;
 import com.pezz.chess.db.bean.GameDetailBean;
 import com.pezz.chess.db.bean.GameHeaderBean;
 import com.pezz.chess.db.bean.PlayerBean;
 import com.pezz.chess.db.table.BoardPosition;
-import com.pezz.chess.db.table.ChessEco;
 import com.pezz.chess.db.table.FuturePosition;
 import com.pezz.chess.db.table.GameDetail;
 import com.pezz.chess.db.table.GameHeader;
@@ -58,11 +56,6 @@ public class GameHistory implements Cloneable, Serializable
    private HashMap<MoveResult, ChessBean> iGameDetaiCreatedList;
    private boolean iIsPgn;
    private GameController iGameController;
-   private PlayerBean iActualWhitePlayer;
-   private PlayerBean iLastWhitePlayer;
-   private PlayerBean iActualBlackPlayer;
-   private PlayerBean iLastBlackPlayer;
-   private ChessEcoBean iLastChessECO;
    private GameHeaderBean iActualGameHeaderBean;
    private int iActualSemiMoveNumber;
    private ChessColor iActualColorMoved;
@@ -146,13 +139,14 @@ public class GameHistory implements Cloneable, Serializable
       return vNew;
    }
 
-   public void persistGame(ChessBoardHeaderData aChessBoardHeaderData, SQLConnection aConnection) throws Exception
+   public int persistGame(ChessBoardHeaderData aChessBoardHeaderData, SQLConnection aConnection) throws Exception
    {
       Persistable vPersistable = SQLConnection.getDBPersistance();
       vPersistable.beginSaveGames(aConnection);
-      vPersistable.persistGame(aChessBoardHeaderData, iInitialPosition, iInitialMoveNr, iInitialColorToMove,
+      int vRet = vPersistable.persistGame(aChessBoardHeaderData, iInitialPosition, iInitialMoveNr, iInitialColorToMove,
             iMoveResults, iPositionNotes, false, aConnection);
       vPersistable.endSaveGames(aConnection);
+      return vRet;
    }
 
    public void persistPgnGame(ChessBoardHeaderData aChessBoardHeaderData, SQLConnection aConnection) throws Exception
@@ -377,11 +371,6 @@ public class GameHistory implements Cloneable, Serializable
       iInitialColorToMove = null;
       clear(iMoveResults);
       iMoveResults = null;
-      iActualWhitePlayer = null;
-      iLastWhitePlayer = null;
-      iActualBlackPlayer = null;
-      iLastBlackPlayer = null;
-      iLastChessECO = null;
       iActualGameHeaderBean = null;
       iActualSemiMoveNumber = -1;
       iActualColorMoved = null;
@@ -407,48 +396,6 @@ public class GameHistory implements Cloneable, Serializable
       }
       aArrayList.clear();
    }
-   // private void saveSuccess()
-   // {
-   // iGameSaved = true;
-   // if (iMoveResults.size() > 0)
-   // {
-   // iLastSavedPosition = iMoveResults.get(iMoveResults.size() - 1).getChessBoardDatabaseValue();
-   // for (MoveResult vMoveResult : iMoveResults)
-   // {
-   // vMoveResult.setSaved(true);
-   // }
-   // }
-   // clearCreated(iBoardPositionCreatedList);
-   // clearCreated(iGameDetaiCreatedList);
-   // clearCreated(iFuturePositionCreatedList);
-   // for (MoveResult vMoveResult : iDeletedMoves)
-   // {
-   // vMoveResult.reset();
-   // }
-   // iDeletedMoves.clear();
-   // }
-   // private void clearCreated(HashMap<MoveResult, ChessBean> aMap)
-   // {
-   // MoveResult vProcessed = getProcessed(aMap);
-   // while (vProcessed != null)
-   // {
-   // aMap.remove(vProcessed);
-   // vProcessed = getProcessed(aMap);
-   // }
-   // }
-   // private MoveResult getProcessed(HashMap<MoveResult, ChessBean> aMap)
-   // {
-   // for (Iterator<Entry<MoveResult, ChessBean>> vIter = aMap.entrySet().iterator(); vIter.hasNext();)
-   // {
-   // Entry<MoveResult, ChessBean> vEntry = vIter.next();
-   // Boolean vBoolean = (Boolean) vEntry.getValue().getAdditionalData("processed");
-   // if (vBoolean != null && vBoolean.booleanValue())
-   // {
-   // return vEntry.getKey();
-   // }
-   // }
-   // return null;
-   // }
 
    public boolean isChanged()
    {
@@ -471,57 +418,12 @@ public class GameHistory implements Cloneable, Serializable
       return iGameSaved;
    }
 
-   protected void removeUnnecessaryData(SQLConnection aConnection) throws Exception
-   {
-      removeUnnecessaryECO(iLastChessECO, aConnection);
-      iLastChessECO = null;
-      removeUnnecessaryPlayer(iLastBlackPlayer, aConnection);
-      iLastBlackPlayer = null;
-      removeUnnecessaryPlayer(iLastWhitePlayer, aConnection);
-      iLastWhitePlayer = null;
-   }
-
-   protected void removeUnnecessaryECO(ChessEcoBean aChessEcoBean, SQLConnection aConnection) throws Exception
-   {
-      if (aChessEcoBean != null)
-      {
-         GameHeader vHeader = new GameHeader(aConnection);
-         if (!vHeader.existsGamesForChessECO(aChessEcoBean.getId()))
-         {
-            ChessEco vChessEco = new ChessEco(aConnection);
-            if (vChessEco.exists(aChessEcoBean.getId()))
-            {
-               vChessEco.delete(aChessEcoBean.getId());
-            }
-         }
-      }
-   }
-
-   protected void removeUnnecessaryPlayer(PlayerBean aPlayerBean, SQLConnection aConnection) throws Exception
-   {
-      if (aPlayerBean != null)
-      {
-         GameHeader vHeader = new GameHeader(aConnection);
-         if (!vHeader.existsGamesForPlayer(aPlayerBean.getId()))
-         {
-            Player vPlayer = new Player(aConnection);
-            if (vPlayer.exists(aPlayerBean.getId()))
-            {
-               vPlayer.delete(aPlayerBean.getId());
-            }
-         }
-      }
-   }
-
    public void reviewGame(int aGameHeaderId) throws Exception
    {
       SQLConnection vSQLConnection = iGameController.getSqlConnection();
       GameHeader vGameHeader = new GameHeader(vSQLConnection);
-      Player vPlayer = new Player(iGameController.getSqlConnection());
       GameHeaderBean vGameHeaderBean = vGameHeader.getById(aGameHeaderId);
       iActualGameHeaderBean = vGameHeaderBean;
-      iActualWhitePlayer = vPlayer.getById(iActualGameHeaderBean.getWhitePlayerId());
-      iActualBlackPlayer = vPlayer.getById(iActualGameHeaderBean.getBlackPlayerId());
       BoardPosition vPosition = new BoardPosition(vSQLConnection);
       iInitialPositionId = vGameHeaderBean.getStartingPositionId();
       BoardPositionBean vBoardPositionBean = vPosition.getById(iInitialPositionId);
@@ -534,10 +436,12 @@ public class GameHistory implements Cloneable, Serializable
       iIsPgn = false;
       FuturePosition vFuturePosition = new FuturePosition(vSQLConnection);
       PositionNote vPositionNote = new PositionNote(vSQLConnection);
+      iMoveResults.clear();
       for (GameDetailBean vGameDetailBean : vGameDetails)
       {
          FuturePositionBean vFuturePositionBean = vFuturePosition.getById(vGameDetailBean.getFuturePositionId());
          MoveResult vResult = MoveResult.fromDatabaseValue(vFuturePositionBean.getMoveValue());
+         vResult.setSaved(true);
          // vResult.setSaved(true);
          vBoardPositionBean = vPosition.getById(vFuturePositionBean.getPositionTo());
          BigInteger vPositionUID = vBoardPositionBean.getPositionUID();
@@ -626,131 +530,17 @@ public class GameHistory implements Cloneable, Serializable
       return false;
    }
 
-   public void deleteGame()
+   public String deleteGame()
    {
-      iGameController.holdStatisticsThread();
       try
       {
-         int vGameHeaderId = iActualGameHeaderBean.getId();
-         GameResult vGameResult = GameResult.fromDBValue(iActualGameHeaderBean.getFinalResult());
-         int vChessEcoId = iActualGameHeaderBean.getChessEcoId();
-         int vWhitePlayerId = iActualWhitePlayer.getId();
-         int vBlackPlayerId = iActualBlackPlayer.getId();
-         GameHeader vGameHeader = new GameHeader(iGameController.getSqlConnection());
-         FuturePosition vFuturePosition = new FuturePosition(iGameController.getSqlConnection());
-         BoardPosition vBoardPosition = new BoardPosition(iGameController.getSqlConnection());
-         ChessEco vChessEco = new ChessEco(iGameController.getSqlConnection());
-         Player vPlayer = new Player(iGameController.getSqlConnection());
-         GameDetail vDetail = new GameDetail(iGameController.getSqlConnection());
-         PositionNote vNote = new PositionNote(iGameController.getSqlConnection());
-         ArrayList<GameDetailBean> vDetails = vDetail.getByGameHeaderId(vGameHeaderId);
-         ArrayList<Integer> vPositions = new ArrayList<>();
-         vPositions.add(iActualGameHeaderBean.getStartingPositionId());
-         for (GameDetailBean vGameDetailBean : vDetails)
-         {
-            FuturePositionBean vFuturePositionBean = vFuturePosition.getById(vGameDetailBean.getFuturePositionId());
-            if (vFuturePositionBean != null)
-            {
-               int vPositionFrom = vFuturePositionBean.getPositionFrom();
-               if (!vPositions.contains(vPositionFrom))
-               {
-                  vPositions.add(vPositionFrom);
-               }
-               int vPositionTo = vFuturePositionBean.getPositionTo();
-               if (!vPositions.contains(vPositionTo))
-               {
-                  vPositions.add(vPositionTo);
-               }
-               if (!vDetail.existsFuturePositionInOtherGames(vGameHeaderId, vGameDetailBean.getFuturePositionId()))
-               {
-                  vFuturePosition.delete(vFuturePositionBean.getId());
-               }
-            }
-            vDetail.delete(vGameDetailBean.getId());
-         }
-         for (Integer vPositionId : vPositions)
-         {
-            BoardPositionBean vBoardPositionBean = vBoardPosition.getById(vPositionId);
-            if (vBoardPosition != null)
-            {
-               if (vDetail.existsFuturePositionInOtherGames(vGameHeaderId, vPositionId))
-               {
-                  if (vGameResult != GameResult.UNKNOWN)
-                  {
-                     switch (vGameResult)
-                     {
-                        case WINBLACK:
-                           vBoardPositionBean.setWinBlack(vBoardPositionBean.getWinBlack() - 1);
-                           break;
-                        case WINWHITE:
-                           vBoardPositionBean.setWinWhite(vBoardPositionBean.getWinWhite() - 1);
-                           break;
-                        case DRAW:
-                           vBoardPositionBean.setNumDraw(vBoardPositionBean.getNumDraw() - 1);
-                        case UNKNOWN:
-                           break;
-                     }
-                     vBoardPosition.update(vBoardPositionBean);
-                  }
-               }
-               else
-               {
-                  vBoardPosition.delete(vBoardPositionBean.getId());
-                  vNote.delete(vBoardPositionBean.getId());
-               }
-            }
-         }
-         deletePlayer(vGameHeaderId, vWhitePlayerId, true, vGameResult, vGameHeader, vPlayer);
-         deletePlayer(vGameHeaderId, vBlackPlayerId, false, vGameResult, vGameHeader, vPlayer);
-         ChessEcoBean vChessEcoBean = vChessEco.getById(vChessEcoId);
-         if (vChessEcoBean != null)
-         {
-            if (vChessEcoBean.getId() == 1 || vGameHeader.existsChessEcoInOtherHeaders(vGameHeaderId, vChessEcoId))
-            {
-               if (vGameResult != GameResult.UNKNOWN)
-               {
-                  switch (vGameResult)
-                  {
-                     case WINBLACK:
-                        vChessEcoBean.setWinBlack(vChessEcoBean.getWinBlack() - 1);
-                        break;
-                     case WINWHITE:
-                        vChessEcoBean.setWinWhite(vChessEcoBean.getWinWhite() - 1);
-                        break;
-                     case DRAW:
-                        vChessEcoBean.setNumDraw(vChessEcoBean.getNumDraw() - 1);
-                     case UNKNOWN:
-                        break;
-                  }
-                  vChessEco.update(vChessEcoBean);
-               }
-            }
-            else
-            {
-               if (vChessEcoBean.getId() > 1)
-               {
-                  vChessEco.delete(vChessEcoBean.getId());
-               }
-            }
-         }
-         vGameHeader.delete(iActualGameHeaderBean.getId());
-         iGameController.getSqlConnection().getConnection().commit();
+         SQLConnection.getDBPersistance().deleteGame(iActualGameHeaderBean.getId(), iGameController.getSqlConnection());
+         return null;
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
-         try
-         {
-            iGameController.getSqlConnection().getConnection().rollback();
-         }
-         catch (Exception e1)
-         {
-         }
+         return e.getMessage() == null ? e.getClass().getName() : e.getMessage();
       }
-      iGameController.resumeStatisticsThread();
-   }
-
-   protected void deleteNote() throws Exception
-   {
    }
 
    protected void deletePlayer(int aGameHeaderId, int aPlayerId, boolean aIsWhite, GameResult aGameResult,

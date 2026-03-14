@@ -73,6 +73,18 @@ public class StatisticsBuilderThread extends Thread
             if (iCanRun && iStatus == STATUS_RUNNING)
             {
                boolean vHadWorked = doJob(vSQLConnection.getConnection());
+               if (vHadWorked)
+               {
+                  Thread vThread = new Thread()
+                  {
+                     @Override
+                     public void run()
+                     {
+                        iController.refreshCombinations();
+                     }
+                  };
+                  vThread.start();
+               }
                if (iCanRun && iStatus == STATUS_RUNNING)
                {
                   if (!vHadWorked)
@@ -102,9 +114,6 @@ public class StatisticsBuilderThread extends Thread
             PreparedStatement vStmtReadPlayer = aConnection
                   .prepareStatement(SQLConnection.getDBPersistance().getSqlGetPlayerById());
             //
-            PreparedStatement vStmtReadLinkedPlayer = aConnection
-                  .prepareStatement(SQLConnection.getDBPersistance().getSqlGetLinkedPlayerData());
-            //
             PreparedStatement vStmtReadPlayerAlias = aConnection
                   .prepareStatement(SQLConnection.getDBPersistance().getSqlGetPlayerAliasById());
             //
@@ -120,17 +129,17 @@ public class StatisticsBuilderThread extends Thread
             PreparedStatement vStmtPlayerAliasManageStatistics = aConnection
                   .prepareStatement(SQLConnection.getDBPersistance().getSqlPlayerAliasManageStatistics());)
       {
-         return doJob(aConnection, vStmtGameDetail, vStmtPlayerHigherElo, vStmtReadPlayer, vStmtReadLinkedPlayer,
-               vStmtReadPlayerAlias, vStmtChessEcoManageStatistics, vStmtBoardPositionManageStatistics,
-               vStmtPlayerManageStatistics, vStmtPlayerAliasManageStatistics);
+         return doJob(aConnection, vStmtGameDetail, vStmtPlayerHigherElo, vStmtReadPlayer, vStmtReadPlayerAlias,
+               vStmtChessEcoManageStatistics, vStmtBoardPositionManageStatistics, vStmtPlayerManageStatistics,
+               vStmtPlayerAliasManageStatistics);
       }
    }
 
    protected boolean doJob(Connection aConnection, PreparedStatement aStmtGameDetail,
          PreparedStatement aStmtPlayerHigherElo, PreparedStatement aStmtReadPlayer,
-         PreparedStatement aStmtReadLinkedPlayer, PreparedStatement aStmtReadPlayerAlias,
-         PreparedStatement aStmtChessEcoManageStatistics, PreparedStatement aStmtBoardPositionManageStatistics,
-         PreparedStatement aStmtPlayerManageStatistics, PreparedStatement aStmtPlayerAliasManageStatistics)
+         PreparedStatement aStmtReadPlayerAlias, PreparedStatement aStmtChessEcoManageStatistics,
+         PreparedStatement aStmtBoardPositionManageStatistics, PreparedStatement aStmtPlayerManageStatistics,
+         PreparedStatement aStmtPlayerAliasManageStatistics)
    {
       boolean vRet = false;
       debug("Statistic Thread do job");
@@ -161,35 +170,11 @@ public class StatisticsBuilderThread extends Thread
                   int vWinBlack = vResult == GameResult.WINBLACK ? 1 : 0;
                   try
                   {
-                     aStmtChessEcoManageStatistics.setInt(1, vWinWhite);
-                     aStmtChessEcoManageStatistics.setInt(2, vDraw);
-                     aStmtChessEcoManageStatistics.setInt(3, vWinBlack);
-                     aStmtChessEcoManageStatistics.setInt(4, vChessEcoId);
-                     aStmtChessEcoManageStatistics.executeUpdate();
-                     //
-                     aStmtBoardPositionManageStatistics.setInt(1, vWinWhite);
-                     aStmtBoardPositionManageStatistics.setInt(2, vDraw);
-                     aStmtBoardPositionManageStatistics.setInt(3, vWinBlack);
-                     aStmtBoardPositionManageStatistics.setInt(4, vStartingPositionId);
-                     aStmtBoardPositionManageStatistics.executeUpdate();
-                     //
-                     updateBordPositions(vGameHeaderId, aStmtGameDetail, aStmtBoardPositionManageStatistics, vWinWhite,
-                           vDraw, vWinBlack);
-                     //
-                     int vNumWin = vWinWhite;
-                     int vNumDraw = vDraw;
-                     int vNumLoose = vWinBlack;
-                     updatePlayer(vWhitePlayerId, vWhiteElo, aStmtPlayerHigherElo, aStmtPlayerManageStatistics,
-                           aStmtPlayerAliasManageStatistics, aStmtReadPlayer, aStmtReadLinkedPlayer,
-                           aStmtReadPlayerAlias, vNumWin, vNumDraw, vNumLoose);
-                     //
-                     vNumWin = vWinBlack;
-                     vNumDraw = vDraw;
-                     vNumLoose = vWinWhite;
-                     updatePlayer(vBlackPlayerId, vBlackElo, aStmtPlayerHigherElo, aStmtPlayerManageStatistics,
-                           aStmtPlayerAliasManageStatistics, aStmtReadPlayer, aStmtReadLinkedPlayer,
-                           aStmtReadPlayerAlias, vNumWin, vNumDraw, vNumLoose);
-                     //
+                     SQLConnection.getDBPersistance().updateStatistics(aStmtGameDetail, aStmtPlayerHigherElo,
+                           aStmtReadPlayer, aStmtReadPlayerAlias, aStmtChessEcoManageStatistics,
+                           aStmtBoardPositionManageStatistics, aStmtPlayerManageStatistics,
+                           aStmtPlayerAliasManageStatistics, vGameHeaderId, vStartingPositionId, vChessEcoId,
+                           vWhitePlayerId, vWhiteElo, vBlackPlayerId, vBlackElo, vWinWhite, vDraw, vWinBlack);
                      vStmtUpdateGameHeaderStatistics.setInt(1, vGameHeaderId);
                      vStmtUpdateGameHeaderStatistics.executeUpdate();
                      aConnection.commit();
@@ -207,80 +192,6 @@ public class StatisticsBuilderThread extends Thread
          e.printStackTrace();
       }
       return vRet;
-   }
-
-   protected void updatePlayer(int aPlayerId, int aPlayerElo, PreparedStatement aStmtPlayerHigherElo,
-         PreparedStatement aStmtPlayerManageStatistics, PreparedStatement aStmtPlayerAliasManageStatistics,
-         PreparedStatement aStmtReadPlayer, PreparedStatement aStmtReadLinkedPlayer,
-         PreparedStatement aStmtReadPlayerAlias, int aNumWin, int aNumDraw, int aNumLoose) throws Exception
-   {
-      int vHigherElo = 0;
-      aStmtPlayerHigherElo.setInt(1, aPlayerId);
-      try (ResultSet vWhiteRs = aStmtPlayerHigherElo.executeQuery())
-      {
-         vHigherElo = vWhiteRs.getInt(1);
-      }
-      catch (Exception e)
-      {
-      }
-      vHigherElo = aPlayerElo > vHigherElo ? aPlayerElo : vHigherElo;
-      int vRealPlayerID = -1;
-      aStmtReadPlayer.setInt(1, aPlayerId);
-      try (ResultSet vMainPlayerRS = aStmtReadPlayer.executeQuery())
-      {
-         if (vMainPlayerRS.next())
-         {
-            vRealPlayerID = vMainPlayerRS.getInt(7);
-         }
-      }
-      if (vRealPlayerID > 0)
-      {
-         updatePlayerImpl(vRealPlayerID, aPlayerElo, aStmtPlayerManageStatistics, vHigherElo, aNumWin, aNumDraw,
-               aNumLoose);
-         updatePlayerAliasImpl(aPlayerId, aStmtPlayerAliasManageStatistics, vHigherElo, aNumWin, aNumDraw, aNumLoose);
-      }
-      else
-      {
-         updatePlayerImpl(aPlayerId, aPlayerElo, aStmtPlayerManageStatistics, vHigherElo, aNumWin, aNumDraw, aNumLoose);
-      }
-   }
-
-   protected void updatePlayerImpl(int aPlayerId, int aPlayerElo, PreparedStatement aStmtPlayerManageStatistics,
-         int aHigherElo, int aNumWin, int aNumDraw, int aNumLoose) throws Exception
-   {
-      aStmtPlayerManageStatistics.setInt(1, aHigherElo);
-      aStmtPlayerManageStatistics.setInt(2, aNumWin);
-      aStmtPlayerManageStatistics.setInt(3, aNumDraw);
-      aStmtPlayerManageStatistics.setInt(4, aNumLoose);
-      aStmtPlayerManageStatistics.setInt(5, aPlayerId);
-      aStmtPlayerManageStatistics.executeUpdate();
-   }
-
-   protected void updatePlayerAliasImpl(int aPlayerId, PreparedStatement aStmtPlayerAliasManageStatistics,
-         int aHigherElo, int aNumWin, int aNumDraw, int aNumLoose) throws Exception
-   {
-      aStmtPlayerAliasManageStatistics.setInt(1, aNumWin);
-      aStmtPlayerAliasManageStatistics.setInt(2, aNumDraw);
-      aStmtPlayerAliasManageStatistics.setInt(3, aNumLoose);
-      aStmtPlayerAliasManageStatistics.setInt(4, aPlayerId);
-      aStmtPlayerAliasManageStatistics.executeUpdate();
-   }
-
-   protected void updateBordPositions(int aGameHeaderId, PreparedStatement aGameDetailStatement,
-         PreparedStatement aStmtBoardPositionManageStatistics, int aWinWhite, int aDraw, int aWinBlack) throws Exception
-   {
-      aGameDetailStatement.setInt(1, aGameHeaderId);
-      try (ResultSet vRes = aGameDetailStatement.executeQuery())
-      {
-         while (vRes.next())
-         {
-            aStmtBoardPositionManageStatistics.setInt(1, aWinWhite);
-            aStmtBoardPositionManageStatistics.setInt(2, aDraw);
-            aStmtBoardPositionManageStatistics.setInt(3, aWinBlack);
-            aStmtBoardPositionManageStatistics.setInt(4, vRes.getInt(1));
-            aStmtBoardPositionManageStatistics.executeUpdate();
-         }
-      }
    }
 
    public int getStatus()

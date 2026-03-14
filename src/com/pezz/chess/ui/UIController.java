@@ -16,6 +16,7 @@ import java.util.List;
 
 import com.pezz.chess.base.ChessColor;
 import com.pezz.chess.base.Coordinate;
+import com.pezz.chess.base.DeleteGameResult;
 import com.pezz.chess.base.GameId;
 import com.pezz.chess.base.GameResult;
 import com.pezz.chess.base.GameStatus;
@@ -25,7 +26,7 @@ import com.pezz.chess.pieces.ChessPiece;
 import com.pezz.chess.preferences.ChessConnectionProperties;
 import com.pezz.chess.preferences.ChessConnectionsProperties;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.GeneralStatisticData;
 import com.pezz.chess.uidata.PagingBeanList;
@@ -55,11 +56,14 @@ public class UIController
       iChessUI.showChessBoard();
    }
 
-   public void reviewGame(int aGameHeaderId)
+   public void reviewGame(int aGameHeaderId, boolean aNewGame)
    {
-      ReviewGameData vData = iNetwork.reviewGame(aGameHeaderId);
-      iChessUI.newGame(vData.getGameId(), GameStatus.REVIEWGAME, vData.getGameHistoryData(),
-            vData.getChessBoardHeaderData());
+      ReviewGameData vData = iNetwork.reviewGame(aGameHeaderId, aNewGame);
+      if (aNewGame)
+      {
+         iChessUI.newGame(vData.getGameId(), GameStatus.REVIEWGAME, vData.getGameHistoryData(),
+               vData.getChessBoardHeaderData());
+      }
       iChessUI.setGameStatus(GameStatus.REVIEWGAME);
       iChessUI.setActiveGameStatus(GameStatus.REVIEWGAME);
    }
@@ -346,7 +350,12 @@ public class UIController
 
    public void persistGame(ChessBoardHeaderData aData)
    {
-      iNetwork.persistGame(aData);
+      int vGameHeaderId = iNetwork.persistGame(aData);
+      if (vGameHeaderId > 0)
+      {
+         ReviewGameData vData = iNetwork.reviewGame(vGameHeaderId, false);
+         iChessUI.reviewCurrentGame(vData);
+      }
    }
 
    public void exitSave()
@@ -389,18 +398,9 @@ public class UIController
       iChessUI.setCloseButtonsStatus();
    }
 
-   public void deleteGame(GameId aGameId, GameId aActiveGameId)
+   public DeleteGameResult deleteGame(GameId aGameId, GameId aActiveGameId)
    {
-      GameId vGameId = iNetwork.deleteGame(aGameId, aActiveGameId);
-      if (aActiveGameId == null)
-      {
-         iChessUI.newGame(vGameId);
-      }
-      else
-      {
-         iChessUI.setActiveGameStatus(iChessUI.getActiveGameStatus());
-      }
-      iChessUI.setCloseButtonsStatus();
+      return iNetwork.deleteGame(aGameId, aActiveGameId);
    }
 
    public boolean isGameSaved()
@@ -526,24 +526,24 @@ public class UIController
       iChessUI.openFavorites();
    }
 
-   public void performAddToFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void performAddToFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iChessUI.performAddToFavorites(aFavoriteGamesData);
+      iChessUI.performAddToFavorites(aFavoritesGamesData);
    }
 
-   public void addToFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void addToFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iNetwork.addToFavorites(aFavoriteGamesData);
+      iNetwork.addToFavorites(aFavoritesGamesData);
    }
 
-   public void performRemoveFromFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void performRemoveFromFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iChessUI.performRemoveFromFavorites(aFavoriteGamesData);
+      iChessUI.performRemoveFromFavorites(aFavoritesGamesData);
    }
 
-   public void removeFromFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void removeFromFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iNetwork.removeFromFavorites(aFavoriteGamesData);
+      iNetwork.removeFromFavorites(aFavoritesGamesData);
    }
 
    public String discoverJdbcDriverClassName(String aJdbcJarFiles)
@@ -636,5 +636,10 @@ public class UIController
    public List<String> getSupportedDatabasesNames()
    {
       return iNetwork.getSupportedDatabasesNames();
+   }
+
+   public void refreshCombinations()
+   {
+      iChessUI.refreshCombinations();
    }
 }

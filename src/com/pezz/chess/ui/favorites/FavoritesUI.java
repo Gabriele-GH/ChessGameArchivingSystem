@@ -16,13 +16,13 @@ import javax.swing.JButton;
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.base.FavoriteType;
 import com.pezz.chess.ui.UIController;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 
 public class FavoritesUI extends JButton implements MouseListener
 {
    private static final long serialVersionUID = 5129127328338066012L;
    private UIController iUIController;
-   private FavoriteGamesData iFavoriteGamesData;
+   private FavoritesGamesData iFavoritesGamesData;
    private FavoritesUIPicker iPicker;
    private boolean iEnabled;
 
@@ -40,41 +40,41 @@ public class FavoritesUI extends JButton implements MouseListener
       iPicker = null;
    }
 
-   public void setFavoriteGameData(FavoriteGamesData aFavoriteGamesData)
+   public void setFavoriteGameData(FavoritesGamesData aFavoritesGamesData)
    {
-      if (iFavoriteGamesData == null)
+      if (iFavoritesGamesData == null)
       {
-         if (aFavoriteGamesData == null)
+         if (aFavoritesGamesData == null)
          {
             setEnabled(false);
          }
          else
          {
-            iFavoriteGamesData = aFavoriteGamesData;
+            iFavoritesGamesData = aFavoritesGamesData;
             iPicker = new FavoritesUIPicker(iUIController);
-            iPicker.setFavoriteGameData(aFavoriteGamesData);
+            iPicker.setFavoriteGameData(aFavoritesGamesData);
          }
       }
       else
       {
-         if (aFavoriteGamesData == null)
+         if (aFavoritesGamesData == null)
          {
             setEnabled(false);
          }
          else
          {
-            iPicker.setFavoriteGameData(aFavoriteGamesData);
-            iFavoriteGamesData = aFavoriteGamesData;
+            iPicker.setFavoriteGameData(aFavoritesGamesData);
+            iFavoritesGamesData = aFavoritesGamesData;
          }
       }
-      if (aFavoriteGamesData == null)
+      if (aFavoritesGamesData == null)
       {
          setToolTipText(ChessResources.RESOURCES.getString("Favorites"));
          setIcon(ChessResources.RESOURCES.getImage("favorites-open-btn-disabled.gif"));
       }
       else
       {
-         FavoriteType vFavoriteType = aFavoriteGamesData.getFavoriteType();
+         FavoriteType vFavoriteType = aFavoritesGamesData.getFavoriteType();
          setToolTipText(vFavoriteType.getText());
          setIcon(vFavoriteType.getImageWhenButton(iEnabled));
       }
@@ -85,13 +85,13 @@ public class FavoritesUI extends JButton implements MouseListener
    {
       super.setEnabled(true);
       iEnabled = aEnabled;
-      if (iFavoriteGamesData == null)
+      if (iFavoritesGamesData == null)
       {
          setIcon(ChessResources.RESOURCES.getImage("favorites-open-btn-disabled.gif"));
       }
       else
       {
-         FavoriteType vFavoriteType = iFavoriteGamesData.getFavoriteType();
+         FavoriteType vFavoriteType = iFavoritesGamesData.getFavoriteType();
          setIcon(vFavoriteType.getImageWhenButton(iEnabled));
       }
    }

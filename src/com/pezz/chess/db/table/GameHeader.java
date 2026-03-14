@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -115,12 +114,6 @@ public class GameHeader extends BaseChessTable<GameHeaderBean>
    public boolean existsPlayerInOtherHeaders(int aGameHeaderId, int aPlayerId) throws Exception
    {
       return SQLConnection.getDBPersistance().existsGameHeaderPlayerInOtherHeaders(aGameHeaderId, aPlayerId,
-            iSQLConnection);
-   }
-
-   public boolean existsChessEcoInOtherHeaders(int aGameHeaderId, int aChessEcoId) throws Exception
-   {
-      return SQLConnection.getDBPersistance().existsGameHeaderChessEcoInOtherHeaders(aGameHeaderId, aChessEcoId,
             iSQLConnection);
    }
 

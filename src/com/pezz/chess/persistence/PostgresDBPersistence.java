@@ -267,24 +267,6 @@ public class PostgresDBPersistence extends ANSIDBPersistence
    }
 
    @Override
-   public boolean existsGameHeaderChessEcoInOtherHeaders(int aGameHeaderId, int aChessEcoId, SQLConnection aConnection)
-         throws Exception
-   {
-      StringBuilder vSql = new StringBuilder("SELECT id FROM gameheader WHERE ").append("chessecoid = ").append('?')
-            .append(" AND ").append(" id <> ").append('?').append(" LIMIT ").append(1).append(" OFFSET(").append(0)
-            .append(")");
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(vSql.toString()))
-      {
-         vPs.setInt(1, aChessEcoId);
-         vPs.setInt(2, aGameHeaderId);
-         try (ResultSet vRs = vPs.executeQuery())
-         {
-            return vRs.next();
-         }
-      }
-   }
-
-   @Override
    public String getSqlBoardPositionInsert()
    {
       return """

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -397,6 +396,7 @@ public class PlayerDetailUI implements WindowListener, ActionListener, ComboBoxL
       if (!isDirty())
       {
          destroy(false);
+         return;
       }
       String vName = iTxfFullName.isDirty() ? iTxfFullName.getText() : null;
       Integer vElo = iTxfELO.isDirty() ? iTxfELO.getAsInt() : null;

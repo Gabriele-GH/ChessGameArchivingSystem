@@ -306,6 +306,6 @@ public class SearchGameUI implements WindowListener, ActionListener, TablePaging
 
    protected void reviewGame(SearchGameHeaderData aBean)
    {
-      iUIController.reviewGame(aBean.getId());
+      iUIController.reviewGame(aBean.getId(), true);
    }
 }

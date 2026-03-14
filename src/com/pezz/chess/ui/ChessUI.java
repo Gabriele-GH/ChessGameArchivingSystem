@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
- * Full License: https://creativecommons.org/licenses/by-nc/4.0/legalcode
  * SPDX-License-Identifier: CC-BY-NC-4.0
  * Non-commercial use only. For commercial licensing, contact the author.
  */
@@ -41,6 +40,7 @@ import javax.swing.event.ChangeListener;
 
 import com.pezz.chess.base.ChessFormatter;
 import com.pezz.chess.base.ChessResources;
+import com.pezz.chess.base.DeleteGameResult;
 import com.pezz.chess.base.FavoriteType;
 import com.pezz.chess.base.GameId;
 import com.pezz.chess.base.GameStatus;
@@ -53,9 +53,10 @@ import com.pezz.chess.ui.player.PlayerUI;
 import com.pezz.chess.ui.search.SearchGameUI;
 import com.pezz.chess.ui.statistics.StatisticsDialogUI;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.GeneralStatisticData;
+import com.pezz.chess.uidata.ReviewGameData;
 import com.pezz.chess.uidata.WhiteBlackStatisticsData;
 
 public class ChessUI implements ActionListener, ChangeListener, WindowListener, Serializable
@@ -481,22 +482,22 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       SearchGameUI.openSearchDialog(iFrmChessUI, iUIController, true);
    }
 
-   public void performAddToFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void performAddToFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iUIController.addToFavorites(aFavoriteGamesData);
-      aFavoriteGamesData.setFavoriteType(FavoriteType.REMOVE);
-      setActiveGameFavoritesData(aFavoriteGamesData);
+      iUIController.addToFavorites(aFavoritesGamesData);
+      aFavoritesGamesData.setFavoriteType(FavoriteType.REMOVE);
+      setActiveGameFavoritesData(aFavoritesGamesData);
       setFavoritesButtonStatus();
    }
 
-   public void performRemoveFromFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void performRemoveFromFavorites(FavoritesGamesData aFavoritesGamesData)
    {
       int vResp = JOptionPane.showConfirmDialog(iFrmChessUI,
             ChessResources.RESOURCES.getString("Remove.Favorites.Warning"),
             ChessResources.RESOURCES.getString("Attention"), JOptionPane.YES_NO_OPTION);
       if (vResp == JOptionPane.YES_OPTION)
       {
-         iUIController.removeFromFavorites(aFavoriteGamesData);
+         iUIController.removeFromFavorites(aFavoritesGamesData);
          resetActiveGameFavoritesData();
          setFavoritesButtonStatus();
       }
@@ -549,9 +550,46 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
             ChessResources.RESOURCES.getString("Attention"), JOptionPane.YES_NO_OPTION);
       if (vResp == JOptionPane.YES_OPTION)
       {
-         GameId vGameId = getActiveGameId();
-         closeActiveTab();
-         iUIController.deleteGame(vGameId, getActiveGameId());
+         GameId vActiveGameId = getActiveGameId();
+         GameId vNextActiveGameId = null;
+         for (int x = 0; x < iTabbedPane.getTabCount(); x++)
+         {
+            ChessPanelUI vCPUI = (ChessPanelUI) iTabbedPane.getComponentAt(x);
+            if (!vCPUI.getGameId().equals(vActiveGameId))
+            {
+               vNextActiveGameId = vCPUI.getGameId();
+               break;
+            }
+         }
+         DeleteGameResult vDGR = iUIController.deleteGame(getActiveGameId(), vNextActiveGameId);
+         if (vDGR.getExceptionMessage() == null)
+         {
+            if (vNextActiveGameId == null)
+            {
+               newGame(vDGR.getGameId());
+            }
+            else
+            {
+               setActiveGameStatus(getActiveGameStatus());
+            }
+            setCloseButtonsStatus();
+            closeActiveTab();
+            refreshCombinations();
+         }
+         else
+         {
+            showMessageDialog(vDGR.getExceptionMessage(), ChessResources.RESOURCES.getString("Attention"),
+                  JOptionPane.ERROR_MESSAGE);
+         }
+      }
+   }
+
+   public void refreshCombinations()
+   {
+      for (int x = 0; x < iTabbedPane.getTabCount(); x++)
+      {
+         ChessPanelUI vUI = (ChessPanelUI) iTabbedPane.getComponentAt(x);
+         vUI.refreshCombinations();
       }
    }
 
@@ -633,6 +671,21 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       vChessPanelUI.refresh();
       setGameStatus(aStatus);
       setActiveGameStatus(aStatus);
+   }
+
+   public void reviewCurrentGame(ReviewGameData aReviewGameData)
+   {
+      ChessPanelUI vChessPanelUI = (ChessPanelUI) iTabbedPane.getComponentAt(iTabbedPane.getSelectedIndex());
+      vChessPanelUI.setGameDetails(aReviewGameData.getChessBoardHeaderData());
+      setGameStatus(GameStatus.REVIEWGAME);
+      setActiveGameStatus(GameStatus.REVIEWGAME);
+      iBtnNext.setEnabled(false);
+      iBtnBack.setEnabled(true);
+      JPanel vTabCmp = (JPanel) iTabbedPane.getTabComponentAt(iTabbedPane.getSelectedIndex());
+      if (vTabCmp != null && vTabCmp instanceof TabTitleUI)
+      {
+         ((TabTitleUI) vTabCmp).setToBeSaved(false);
+      }
    }
 
    public void setGameStatus(GameStatus aGameStatus)
@@ -923,7 +976,7 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       return vChessPanelUI.isInFavorites();
    }
 
-   protected void setActiveGameFavoritesData(FavoriteGamesData aFavoriteGamesData)
+   protected void setActiveGameFavoritesData(FavoritesGamesData aFavoritesGamesData)
    {
       int vIdx = iTabbedPane.getSelectedIndex();
       if (vIdx == -1)
@@ -931,7 +984,7 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
          return;
       }
       ChessPanelUI vChessPanelUI = (ChessPanelUI) iTabbedPane.getComponentAt(vIdx);
-      vChessPanelUI.setFavoritesData(aFavoriteGamesData);
+      vChessPanelUI.setFavoritesData(aFavoritesGamesData);
    }
 
    protected void resetActiveGameFavoritesData()
@@ -945,7 +998,7 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       vChessPanelUI.resetFavoritesData();
    }
 
-   public FavoriteGamesData getCurrentFavoriteGameData()
+   public FavoritesGamesData getCurrentFavoriteGameData()
    {
       int vIdx = iTabbedPane.getSelectedIndex();
       if (vIdx == -1)
@@ -1298,7 +1351,7 @@ public class ChessUI implements ActionListener, ChangeListener, WindowListener, 
       // decodeKey(new int[] { 108, 116, 47, 62, 47, 105, 105, 122, 80, 101, 101, 114, 97, 32, 98, 98, 62, 109, 104,
       // 109, 104, 60, 98, 60, 110, 122, 101, 32, 108, 105, 98, 71, 121, 62, 60, 108, 116, 60, 62 }));
       JLabel vLabel = new JLabel(
-            "<html><b>Version 1.0.0.4</b><br><br>Copyright (c) 2025 Gabriele Pezzini<br><br>License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</html>");
+            "<html><b>Version 1.0.0.5</b><br><br>Copyright (c) 2025 Gabriele Pezzini<br><br>License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</html>");
       vGbc.fill = GridBagConstraints.HORIZONTAL;
       vContentPane.add(vLabel, vGbc);
       vGbc = new GridBagConstraints();

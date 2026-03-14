@@ -29,13 +29,13 @@ import com.pezz.util.itn.SQLConnection;
 public class MariaDBPersistence extends ANSIDBPersistence
 {
    //
-   private static String iSqlGetPlayersData = "SELECT fullname, higherelo, numwin, numdraw, numloose FROM player WHERE realplayerid = 0 ORDER BY numwin DESC  limit 0, ";
+   private static String iSqlGetPlayersData = "SELECT fullname, higherelo, numwin, numdraw, numloose FROM player WHERE realplayerid = 0 ORDER BY numwin DESC  LIMIT 0, ";
    //
    public static String iSqlExistsGameDetailFuturePositionInOtherGames = """
          SELECT id FROM gamedetail
          WHERE futurepositionid = ? AND
             gameheaderid <> ?
-            LIMIT 0
+            LIMIT 1
          """;
    //
 
@@ -252,29 +252,12 @@ public class MariaDBPersistence extends ANSIDBPersistence
       StringBuilder vSql = new StringBuilder("SELECT id FROM gameheader WHERE ").append('(').append("whiteplayerid = ")
             .append('?').append(" OR ").append(" blackplayerid = ").append('?').append(')').append(" AND ")
             .append(" id <> ").append('?');
-      vSql.append(" LIMIT ").append(0).append(", ").append(1);
+      vSql.append(" LIMIT 1");
       try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(vSql.toString()))
       {
          vPs.setInt(1, aPlayerId);
          vPs.setInt(2, aPlayerId);
          vPs.setInt(3, aGameHeaderId);
-         try (ResultSet vRs = vPs.executeQuery())
-         {
-            return vRs.next();
-         }
-      }
-   }
-
-   @Override
-   public boolean existsGameHeaderChessEcoInOtherHeaders(int aGameHeaderId, int aChessEcoId, SQLConnection aConnection)
-         throws Exception
-   {
-      StringBuilder vSql = new StringBuilder("SELECT id FROM gameheader WHERE ").append("chessecoid = ").append('?')
-            .append(" AND ").append(" id <> ").append('?').append(" LIMIT ").append(0).append(", ").append(1);
-      try (PreparedStatement vPs = aConnection.getConnection().prepareStatement(vSql.toString()))
-      {
-         vPs.setInt(1, aChessEcoId);
-         vPs.setInt(2, aGameHeaderId);
          try (ResultSet vRs = vPs.executeQuery())
          {
             return vRs.next();

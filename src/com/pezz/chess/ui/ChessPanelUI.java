@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -29,7 +28,7 @@ import com.pezz.chess.ui.combination.CombinationPanelUI;
 import com.pezz.chess.ui.gamehistory.GameHistoryPanelUI;
 import com.pezz.chess.ui.note.NoteUI;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.PositionNoteData;
 
@@ -150,6 +149,11 @@ public class ChessPanelUI extends JPanel
       refreshNotes();
    }
 
+   public void refreshCombinations()
+   {
+      iCombinationPanel.refresh();
+   }
+
    public void refreshNotes()
    {
       PositionNoteData vData = iUIController.getPositionNote();
@@ -198,6 +202,7 @@ public class ChessPanelUI extends JPanel
    public void setStatus(GameStatus aGameStatus)
    {
       iGameStatus = aGameStatus;
+      iGameHistoryPanel.setGameStatus(aGameStatus);
       invalidate();
       switch (aGameStatus)
       {
@@ -273,7 +278,7 @@ public class ChessPanelUI extends JPanel
 
    public boolean isInFavorites()
    {
-      return iChessBoardHeaderData != null && iChessBoardHeaderData.getFavoriteGamesData() != null;
+      return iChessBoardHeaderData != null && iChessBoardHeaderData.getFavoritesGamesData() != null;
    }
 
    public int getGameHeaderId()
@@ -281,22 +286,22 @@ public class ChessPanelUI extends JPanel
       return iChessBoardHeaderData == null ? -1 : iChessBoardHeaderData.getGameHeaderId();
    }
 
-   public FavoriteGamesData getFavoriteGameData()
+   public FavoritesGamesData getFavoriteGameData()
    {
-      return isInFavorites() ? iChessBoardHeaderData.getFavoriteGamesData() : null;
+      return isInFavorites() ? iChessBoardHeaderData.getFavoritesGamesData() : null;
    }
 
-   public void setFavoritesData(FavoriteGamesData aFavoriteGamesData)
+   public void setFavoritesData(FavoritesGamesData aFavoritesGamesData)
    {
-      iChessBoardHeaderData.setFavoriteGamesData(aFavoriteGamesData);
+      iChessBoardHeaderData.setFavoritesGamesData(aFavoritesGamesData);
    }
 
    public void resetFavoritesData()
    {
-      FavoriteGamesData vFavoriteGamesData = new FavoriteGamesData();
-      vFavoriteGamesData.setFavoriteType(FavoriteType.ADD);
-      vFavoriteGamesData.setId(iChessBoardHeaderData.getGameHeaderId());
-      iChessBoardHeaderData.setFavoriteGamesData(vFavoriteGamesData);
+      FavoritesGamesData vFavoritesGamesData = new FavoritesGamesData();
+      vFavoritesGamesData.setFavoriteType(FavoriteType.ADD);
+      vFavoritesGamesData.setId(iChessBoardHeaderData.getGameHeaderId());
+      iChessBoardHeaderData.setFavoritesGamesData(vFavoritesGamesData);
    }
 
    public void setGameDetails(ChessBoardHeaderData aChessBoardHeaderData)

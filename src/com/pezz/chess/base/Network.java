@@ -21,7 +21,7 @@ import com.pezz.chess.preferences.ChessConnectionsProperties;
 import com.pezz.chess.ui.SquareUI;
 import com.pezz.chess.ui.UIController;
 import com.pezz.chess.uidata.ChessBoardHeaderData;
-import com.pezz.chess.uidata.FavoriteGamesData;
+import com.pezz.chess.uidata.FavoritesGamesData;
 import com.pezz.chess.uidata.GameHistoryData;
 import com.pezz.chess.uidata.GeneralStatisticData;
 import com.pezz.chess.uidata.PagingBeanList;
@@ -275,9 +275,9 @@ public class Network
       return iGameController.getColorToMove();
    }
 
-   public void persistGame(ChessBoardHeaderData aData)
+   public int persistGame(ChessBoardHeaderData aData)
    {
-      iGameController.persistGame(aData);
+      return iGameController.persistGame(aData);
    }
 
    public void exitSave()
@@ -305,7 +305,7 @@ public class Network
       return iGameController.getCombinations();
    }
 
-   public GameId deleteGame(GameId aGameId, GameId aActiveGameId)
+   public DeleteGameResult deleteGame(GameId aGameId, GameId aActiveGameId)
    {
       return iGameController.deleteGame(aGameId, aActiveGameId);
    }
@@ -368,9 +368,9 @@ public class Network
             aLastPageRequest);
    }
 
-   public ReviewGameData reviewGame(int aId)
+   public ReviewGameData reviewGame(int aId, boolean aNewGame)
    {
-      return iGameController.reviewGame(aId);
+      return iGameController.reviewGame(aId, aNewGame);
    }
 
    public void refresh()
@@ -426,14 +426,14 @@ public class Network
       iGameController.saveNote(aPositionNoteData);
    }
 
-   public void addToFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void addToFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iGameController.addToFavorites(aFavoriteGamesData);
+      iGameController.addToFavorites(aFavoritesGamesData);
    }
 
-   public void removeFromFavorites(FavoriteGamesData aFavoriteGamesData)
+   public void removeFromFavorites(FavoritesGamesData aFavoritesGamesData)
    {
-      iGameController.removeFromFavorites(aFavoriteGamesData);
+      iGameController.removeFromFavorites(aFavoritesGamesData);
    }
 
    public String discoverJdbcDriverClassName(String aJdbcJarFiles)
@@ -516,5 +516,10 @@ public class Network
    public List<String> getSupportedDatabasesNames()
    {
       return iGameController.getSupportedDatabasesNames();
+   }
+
+   public void refreshCombinations()
+   {
+      iUIController.refreshCombinations();
    }
 }
