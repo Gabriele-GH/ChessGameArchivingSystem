@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -61,7 +60,7 @@ public class SetupPositionPanelUI extends JPanel implements ActionListener, Mous
    private JButton iBtnCancel;
    private JLabel iCleanSquare;
 
-   public void closeGame()
+   public void k()
    {
       iBtnOk.removeActionListener(this);
       iBtnCancel.removeActionListener(this);

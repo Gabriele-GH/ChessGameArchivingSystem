@@ -396,18 +396,18 @@ public class ChessBoard implements Cloneable
    protected void addAdditionalMoveInfo(MoveResult aMoveResult)
    {
       ChessPiece vPieceMoved = aMoveResult.getPieceMoved();
-      SimpleChessPiece vSimple = vPieceMoved.getSimpleChessPiece();
-      if (vSimple == SimpleChessPiece.KING)
+      SimpleChessPiece vSimplePieceMoved = vPieceMoved.getSimpleChessPiece();
+      if (vSimplePieceMoved == SimpleChessPiece.KING)
       {
          return;
       }
-      if (vSimple == SimpleChessPiece.PAWN && aMoveResult.getPieceCaptured() == null)
+      if (vSimplePieceMoved == SimpleChessPiece.PAWN && aMoveResult.getPieceCaptured() == null)
       {
          return;
       }
       Coordinate vFrom = aMoveResult.getCoordinateFrom();
       Coordinate vTo = aMoveResult.getCoordinateTo();
-      for (ChessBoardPiece vPiece : iAvailablePieces.getListOf(vSimple, vPieceMoved.getColor()))
+      for (ChessBoardPiece vPiece : iAvailablePieces.getListOf(vSimplePieceMoved, vPieceMoved.getColor()))
       {
          Coordinate vPieceCoord = vPiece.getCoordinate();
          if (vPieceCoord != null && !vPieceCoord.equals(vFrom))
@@ -417,6 +417,28 @@ public class ChessBoard implements Cloneable
             {
                aMoveResult.setOtherPieceCanGoTo(true);
                aMoveResult.setOtherPieceSameRow(vPieceCoord.getY() == vFrom.getY());
+               break;
+            }
+         }
+      }
+      if (aMoveResult.getPieceCaptured() != null)
+      {
+         ChessPiece vPieceCaptuted = ChessPiece.valueOf(aMoveResult.getPieceCaptured(),
+               aMoveResult.getPieceMoved().getColor() == ChessColor.WHITE ? ChessColor.BLACK : ChessColor.WHITE);
+         SimpleChessPiece vSimplePieceCaptured = vPieceCaptuted.getSimpleChessPiece();
+         ChessBoardPiece vCPMoved = ChessBoardPiece.valueOf(vPieceMoved);
+         vCPMoved.setOwner(new Square(vFrom));
+         for (ChessBoardPiece vPiece : iAvailablePieces.getListOf(vSimplePieceCaptured, vPieceCaptuted.getColor()))
+         {
+            Coordinate vPieceCoord = vPiece.getCoordinate();
+            if (vPieceCoord != null && !vPieceCoord.equals(vTo))
+            {
+               MoveResult vRes = vCPMoved.validateMove(vTo, this);
+               if (vRes.isValid())
+               {
+                  aMoveResult.setCaptureablePiecesLikeCapturedPiece(true);
+                  break;
+               }
             }
          }
       }
@@ -698,6 +720,7 @@ public class ChessBoard implements Cloneable
       iMoveNr = aMoveNr;
       iGameHistory.setInitialMoveNr(aMoveNr);
       iGameHistory.setInitialColorToMove(iColorToMove);
+      iAvailablePieces.resetIsMoved();
    }
 
    public void insertPiece(ChessBoardPiece aPiece)

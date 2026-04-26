@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -13,29 +12,33 @@ import com.pezz.chess.base.ChessColor;
 public enum ChessPiece
 {
    //
-   PAWN_WHITE(new char[] { '0', '0', '0', '1' }, SimpleChessPiece.PAWN, ChessColor.WHITE, "whitepawn.gif"),
+   PAWN_WHITE(new char[] { '0', '0', '0', '1' }, SimpleChessPiece.PAWN, ChessColor.WHITE, "whitepawn.gif", "\u2659"),
    //
-   ROOK_WHITE(new char[] { '0', '0', '1', '0' }, SimpleChessPiece.ROOK, ChessColor.WHITE, "whiterook.gif"),
+   ROOK_WHITE(new char[] { '0', '0', '1', '0' }, SimpleChessPiece.ROOK, ChessColor.WHITE, "whiterook.gif", "\u2656"),
    //
-   KNIGHT_WHITE(new char[] { '0', '0', '1', '1' }, SimpleChessPiece.KNIGHT, ChessColor.WHITE, "whiteknight.gif"),
+   KNIGHT_WHITE(new char[] { '0', '0', '1', '1' }, SimpleChessPiece.KNIGHT, ChessColor.WHITE, "whiteknight.gif",
+         "\u2658"),
    //
-   BISHOP_WHITE(new char[] { '0', '1', '0', '0' }, SimpleChessPiece.BISHOP, ChessColor.WHITE, "whitebishop.gif"),
+   BISHOP_WHITE(new char[] { '0', '1', '0', '0' }, SimpleChessPiece.BISHOP, ChessColor.WHITE, "whitebishop.gif",
+         "\u2657"),
    //
-   QUEEN_WHITE(new char[] { '0', '1', '0', '1' }, SimpleChessPiece.QUEEN, ChessColor.WHITE, "whitequeen.gif"),
+   QUEEN_WHITE(new char[] { '0', '1', '0', '1' }, SimpleChessPiece.QUEEN, ChessColor.WHITE, "whitequeen.gif", "\u2655"),
    //
-   KING_WHITE(new char[] { '0', '1', '1', '0' }, SimpleChessPiece.KING, ChessColor.WHITE, "whiteking.gif"),
+   KING_WHITE(new char[] { '0', '1', '1', '0' }, SimpleChessPiece.KING, ChessColor.WHITE, "whiteking.gif", "\u2654"),
    //
-   PAWN_BLACK(new char[] { '1', '0', '0', '1' }, SimpleChessPiece.PAWN, ChessColor.BLACK, "blackpawn.gif"),
+   PAWN_BLACK(new char[] { '1', '0', '0', '1' }, SimpleChessPiece.PAWN, ChessColor.BLACK, "blackpawn.gif", "\u265F"),
    //
-   ROOK_BLACK(new char[] { '1', '0', '1', '0' }, SimpleChessPiece.ROOK, ChessColor.BLACK, "blackrook.gif"),
+   ROOK_BLACK(new char[] { '1', '0', '1', '0' }, SimpleChessPiece.ROOK, ChessColor.BLACK, "blackrook.gif", "\u265C"),
    //
-   KNIGHT_BLACK(new char[] { '1', '0', '1', '1' }, SimpleChessPiece.KNIGHT, ChessColor.BLACK, "blackknight.gif"),
+   KNIGHT_BLACK(new char[] { '1', '0', '1', '1' }, SimpleChessPiece.KNIGHT, ChessColor.BLACK, "blackknight.gif",
+         "\u265E"),
    //
-   BISHOP_BLACK(new char[] { '1', '1', '0', '0' }, SimpleChessPiece.BISHOP, ChessColor.BLACK, "blackbishop.gif"),
+   BISHOP_BLACK(new char[] { '1', '1', '0', '0' }, SimpleChessPiece.BISHOP, ChessColor.BLACK, "blackbishop.gif",
+         "\u265D"),
    //
-   QUEEN_BLACK(new char[] { '1', '1', '0', '1' }, SimpleChessPiece.QUEEN, ChessColor.BLACK, "blackqueen.gif"),
+   QUEEN_BLACK(new char[] { '1', '1', '0', '1' }, SimpleChessPiece.QUEEN, ChessColor.BLACK, "blackqueen.gif", "\u265B"),
    //
-   KING_BLACK(new char[] { '1', '1', '1', '0' }, SimpleChessPiece.KING, ChessColor.BLACK, "blackking.gif");
+   KING_BLACK(new char[] { '1', '1', '1', '0' }, SimpleChessPiece.KING, ChessColor.BLACK, "blackking.gif", "\u265A");
 
    //
    private char[] iBin;
@@ -44,14 +47,17 @@ public enum ChessPiece
    private ChessColor iColor;
    private SimpleChessPiece iSimpleChessPiece;
    private String iImageName;
+   private String iSymbol;
 
-   ChessPiece(char[] aBooleanValue, SimpleChessPiece aSimpleChessPiece, ChessColor aColor, String aImageName)
+   ChessPiece(char[] aBooleanValue, SimpleChessPiece aSimpleChessPiece, ChessColor aColor, String aImageName,
+         String aSymbol)
    {
       iBin = aBooleanValue;
       iStrBin = new String(iBin);
       iColor = aColor;
       iSimpleChessPiece = aSimpleChessPiece;
       iImageName = aImageName;
+      iSymbol = aSymbol;
    }
 
    public char[] asBoolean()
@@ -138,5 +144,10 @@ public enum ChessPiece
    public String getImageName()
    {
       return iImageName;
+   }
+
+   public String getSymbol()
+   {
+      return iSymbol;
    }
 }

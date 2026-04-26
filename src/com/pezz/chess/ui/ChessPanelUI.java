@@ -50,6 +50,7 @@ public class ChessPanelUI extends JPanel
    private GameStatus iGameStatus;
    private NoteUI iNoteUI;
    private ChessBoardHeaderData iChessBoardHeaderData;
+   public static final int iTblRowHeightCoeff = 6;
 
    public ChessPanelUI(GameId aGameId, GameStatus aGameStatus, UIController aUIController)
    {
@@ -77,7 +78,7 @@ public class ChessPanelUI extends JPanel
       iOutputGameDetailUI = null;
       iGameHistoryPanel.closeGame();
       iGameHistoryPanel = null;
-      iSetupPositionPanelUI.closeGame();
+      iSetupPositionPanelUI.closeGame(this);
       iSetupPositionPanelUI = null;
       iPromotePawnPanelUI.closeGame();
       iPromotePawnPanelUI = null;

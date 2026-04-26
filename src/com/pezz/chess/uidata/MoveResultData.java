@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -9,23 +8,24 @@
 package com.pezz.chess.uidata;
 
 import com.pezz.chess.base.ChessColor;
+import com.pezz.chess.base.MoveResult;
 
 public class MoveResultData
 {
    private ChessColor iColorMoved;
-   private String iMove;
+   private MoveResult iMoveResult;
    private PositionNoteData iPositionNoteData;
 
-   public MoveResultData(ChessColor aColorMoved, String aMove, PositionNoteData aPositionNoteData)
+   public MoveResultData(ChessColor aColorMoved, MoveResult aMoveResult, PositionNoteData aPositionNoteData)
    {
       iColorMoved = aColorMoved;
-      iMove = aMove;
+      iMoveResult = aMoveResult;
       iPositionNoteData = aPositionNoteData;
    }
 
-   public String getMove()
+   public MoveResult getMoveResult()
    {
-      return iMove;
+      return iMoveResult;
    }
 
    public ChessColor getColorMoved()

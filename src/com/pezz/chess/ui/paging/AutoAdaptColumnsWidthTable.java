@@ -87,7 +87,7 @@ public class AutoAdaptColumnsWidthTable extends JTable
          {
             Object vTableValueObj = getValueAt(x, y);
             String vTableValueStr = vTableValueObj == null ? "" : vTableValueObj.toString().trim();
-            int vActualLen = vFm.stringWidth(vTableValueStr) + 10;
+            int vActualLen = vFm.stringWidth(vTableValueStr) + 25;
             if (vColSize.elementAt(y) < vActualLen)
             {
                vColSize.setElementAt(vActualLen, y);

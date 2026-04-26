@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -24,6 +23,7 @@ import javax.swing.event.ListSelectionListener;
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.base.GameStatus;
 import com.pezz.chess.base.MoveResult;
+import com.pezz.chess.ui.ChessPanelUI;
 import com.pezz.chess.ui.UIController;
 import com.pezz.chess.uidata.CombinationData;
 
@@ -41,6 +41,7 @@ public class CombinationPanelUI extends JPanel implements ListSelectionListener,
       add(vTitleLabel, BorderLayout.NORTH);
       iUIController = aUIController;
       iTblCombination = new CombinationTable();
+      iTblCombination.setRowHeight(iTblCombination.getRowHeight() + ChessPanelUI.iTblRowHeightCoeff);
       if (aUIController.getGameStatus() == GameStatus.ANALYZE)
       {
          iTblCombination.getSelectionModel().addListSelectionListener(this);

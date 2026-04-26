@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -10,6 +9,7 @@ package com.pezz.chess.ui.gamehistory;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -46,12 +46,14 @@ public class GameHistoryCellRenderer extends DefaultTableCellRenderer
       vGbc.fill = GridBagConstraints.HORIZONTAL;
       vGbc.insets = new Insets(1, 5, 1, 0);
       JTextField vTxf = new JTextField(10);
+      Font vActualFont = vTxf.getFont();
+      vTxf.setFont(vActualFont.deriveFont((float) (vActualFont.getSize() + 4)));
       vTxf.setBorder(null);
       vPanel.add(vTxf, vGbc);
       if (aValue instanceof MoveResultData)
       {
          MoveResultData vData = (MoveResultData) aValue;
-         vTxf.setText(vData.getMove());
+         vTxf.setText(vData.getMoveResult().format());
          NoteType vNoteType = vData.getPositionNoteData().getNoteType();
          if (vNoteType != null && vNoteType != NoteType.NONE)
          {
@@ -60,8 +62,8 @@ public class GameHistoryCellRenderer extends DefaultTableCellRenderer
             vGbc.insets = new Insets(1, 0, 1, 0);
             JLabel vLabel = new JLabel(vNoteType.getImage());
             vPanel.add(vLabel, vGbc);
-            vPanel.setToolTipText(
-                  "<html>" + vData.getPositionNoteData().getNoteCnt().replace("\n", "<br>").replace("\r", "<br>") + "</html>");
+            vPanel.setToolTipText("<html>"
+                  + vData.getPositionNoteData().getNoteCnt().replace("\n", "<br>").replace("\r", "<br>") + "</html>");
          }
       }
       else

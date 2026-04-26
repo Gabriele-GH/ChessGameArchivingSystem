@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -459,5 +458,25 @@ public class AvailablePieces implements Cloneable
          }
       }
       return vRet;
+   }
+
+   public void resetIsMoved()
+   {
+      iPawnsBlack.resetIsMoved();
+      iRooksBlack.resetIsMoved();
+      iKnightsBlack.resetIsMoved();
+      iBishopsBlack.resetIsMoved();
+      iQueensBlack.resetIsMoved();
+      iKingsBlack.resetIsMoved();
+      iAllBlacks.resetIsMoved();
+      iPawnsWhite.resetIsMoved();
+      iRooksWhite.resetIsMoved();
+      iKnightsWhite.resetIsMoved();
+      iBishopsWhite.resetIsMoved();
+      iQueensWhite.resetIsMoved();
+      iKingsWhite.resetIsMoved();
+      iAllWhites.resetIsMoved();
+      iKingBlack.setMoved(false);
+      iKingWhite.setMoved(false);
    }
 }

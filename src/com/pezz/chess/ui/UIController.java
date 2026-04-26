@@ -333,8 +333,8 @@ public class UIController
       if (vData != null)
       {
          setGameHistoryDataInActiveGame(vData);
-         iChessUI.refreshActiveGame();
       }
+      iChessUI.refreshActiveGame();
    }
 
    public void finalizePromoteMove(ChessPiece aChessPiece)

@@ -682,6 +682,7 @@ public class GameController implements Serializable
       if (aConfirm)
       {
          setStatus(iActiveController.getPreviousStatus());
+         iActiveController.cleanGameHistory();
       }
       else
       {

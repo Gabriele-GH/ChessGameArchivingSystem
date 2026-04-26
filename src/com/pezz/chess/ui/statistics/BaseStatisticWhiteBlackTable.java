@@ -7,11 +7,13 @@
  */
 package com.pezz.chess.ui.statistics;
 
+import java.awt.Component;
 import java.util.ArrayList;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
@@ -60,6 +62,17 @@ public abstract class BaseStatisticWhiteBlackTable extends AutoAdaptColumnsWidth
       vTCM.getColumn(5).setCellRenderer(vRight);
       vTCM.getColumn(6).setCellRenderer(vRight);
       vTCM.getColumn(7).setCellRenderer(vRight);
+      setDefaultRenderer(Object.class, new DefaultTableCellRenderer()
+      {
+         @Override
+         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+               boolean hasFocus, int row, int column)
+         {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            c.setFont(c.getFont().deriveFont(c.getFont().getSize2D() + 5));
+            return c;
+         }
+      });
    }
 
    public void setFirtColumnWidth()

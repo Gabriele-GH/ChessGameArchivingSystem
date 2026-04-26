@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -277,7 +276,7 @@ public class PgnExportThread extends Thread
             }
             vBuilder.append(vParz);
          }
-         String vMove = MoveResult.fromDatabaseValue(vDetails.get(x).getMoveStr()).shortFormat();
+         String vMove = MoveResult.fromDatabaseValue(vDetails.get(x).getMoveStr()).toPgnFormat();
          if (vBuilder.length() + vMove.length() >= 75)
          {
             vGame.append(vBuilder);

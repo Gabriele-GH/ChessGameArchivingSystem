@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -24,6 +23,7 @@ public class BaseStatisticsWhiteBlackCellRenderer extends DefaultTableCellRender
    {
       JLabel vLabel = (JLabel) super.getTableCellRendererComponent(aTable, aValue, aIsSelected, aHasFocus, aRow,
             aColumn);
+      vLabel.setFont(vLabel.getFont().deriveFont(vLabel.getFont().getSize2D() + 4));
       if (aTable instanceof BaseStatisticWhiteBlackTable && ((BaseStatisticWhiteBlackTable) aTable).getBoldOnLastLine())
       {
          if (aRow == aTable.getRowCount() - 1)

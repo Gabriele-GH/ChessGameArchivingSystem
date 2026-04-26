@@ -33,6 +33,7 @@ public class MoveResult implements Cloneable
    private boolean iIsLongCastle;
    private InvalidMoveCause iInvalidMoveCause;
    private String iInvalidMoveMessage;
+   public boolean iCaptureablePiecesLikeCapturedPiece;
 
    public MoveResult(ChessPiece aPieceMoved, Coordinate aCoordinateFrom, Coordinate aCoordinateTo, MoveType aMoveType,
          boolean aIsShortCastle, boolean aIsLongCastle)
@@ -189,19 +190,21 @@ public class MoveResult implements Cloneable
       //
       // ==================================================================================================
       //
-      // 4: pezzo mosso
+      // da 0 len 1: ci sono altri pezzi catturabile dal pezzo che move dello stesso tipo del pezzo catturato
+      v32Bit[0] = iCaptureablePiecesLikeCapturedPiece ? '1' : '0';
+      // da 1 len 4: pezzo mosso
       System.arraycopy(iPieceMoved.asBoolean(), 0, v32Bit, 1, 4);
-      // 3: pezzo catturato
+      // da 5 len 3: pezzo catturato
       if (iPieceCaptured != null)
       {
          System.arraycopy(iPieceCaptured.asBoolean(), 0, v32Bit, 5, 3);
       }
-      // 1: può andare altro pezzo
+      // da 8 len 1: può andare altro pezzo
       v32Bit[8] = iOtherPieceCanGoTo ? '1' : '0';
       // ==================================================================================================
-      // 6: coordinate from
+      // da 9 len 6: coordinate from
       System.arraycopy(iCoordinateFrom.toBinary(), 0, v32Bit, 9, 6);
-      // 2: nr of checks
+      // da 15 len 2: nr of checks
       switch (iCheck)
       {
          case 1:
@@ -219,23 +222,23 @@ public class MoveResult implements Cloneable
       }
       // ==================================================================================================
       //
-      // 6: coordinate to
+      // da 17 len 6: coordinate to
       System.arraycopy(iCoordinateTo.toBinary(), 0, v32Bit, 17, 6);
-      // 1: other same piece in same row
+      // da 23 le3n 1: other same piece in same row
       v32Bit[23] = iOtherPieceSameRow ? '1' : '0';
       //
       // ==================================================================================================
       //
-      // 3: tipo mossa
+      // da 24 len 3: tipo mossa
       System.arraycopy(iMoveType.asBoolean(), 0, v32Bit, 24, 3);
-      // 3: Pezzo promosso
+      // da 27 len 3: Pezzo promosso
       if (iPiecePromoted != null)
       {
          System.arraycopy(iPiecePromoted.asBoolean(), 0, v32Bit, 27, 3);
       }
-      // 1: arrocco corto
+      // da 30 len 1: arrocco corto
       v32Bit[30] = iIsShortCastle ? '1' : '0';
-      // 1: arrocco lungo
+      // da 31 len 1: arrocco lungo
       v32Bit[31] = iIsLongCastle ? '1' : '0';
       iSavedMoveValue = Binary.toInt(v32Bit);
       return iSavedMoveValue;
@@ -248,6 +251,7 @@ public class MoveResult implements Cloneable
          return null;
       }
       String vDatabaseString = Binary.toBinaryString(aDatabaseValue, 32);
+      boolean vCaptureablePiecesLikeCapturedPiece = vDatabaseString.charAt(0) == '1';
       SimpleChessPiece vSimplePieceMoved = SimpleChessPiece.valueOf(vDatabaseString.charAt(2),
             vDatabaseString.charAt(3), vDatabaseString.charAt(4));
       ChessPiece vPieceMoved = ChessPiece.valueOf(vSimplePieceMoved,
@@ -283,6 +287,7 @@ public class MoveResult implements Cloneable
       //
       MoveResult vResult = new MoveResult(vPieceMoved, vCoordinateFrom, vCoordinateTo, vMoveType, vIsShortCastle,
             vIsLongCastle, vPieceCaptured);
+      vResult.iCaptureablePiecesLikeCapturedPiece = vCaptureablePiecesLikeCapturedPiece;
       vResult.iOtherPieceCanGoTo = vOtherPieceCanGoTo;
       vResult.iOtherPieceSameRow = vOtherPieceSameRow;
       vResult.iPiecePromoted = vPiecePromoted;
@@ -303,15 +308,102 @@ public class MoveResult implements Cloneable
    @Override
    public String toString()
    {
-      return format();
+      return toLongStringFormat();
    }
 
    public String format()
    {
-      return ChessPreferences.getInstance().getMoveNotation() == MoveNotation.SHORT ? shortFormat() : longFormat();
+      return ChessPreferences.getInstance().getMoveNotation() == MoveNotation.SHORT ? toShortStringFormat()
+            : toLongStringFormat();
    }
 
-   public String shortFormat()
+   public String toShortStringFormat()
+   {
+      StringBuilder vRet = new StringBuilder();
+      if (iIsShortCastle)
+      {
+         return "O-O";
+      }
+      else if (iIsLongCastle)
+      {
+         return "O-O-O";
+      }
+      vRet.append(iPieceMoved.getSymbol());
+      if (iOtherPieceCanGoTo)
+      {
+         vRet.append(iOtherPieceSameRow ? Character.toString(Character.toLowerCase(iCoordinateFrom.getColumnLetter()))
+               : iCoordinateFrom.getRowNumber());
+      }
+      if (iPieceCaptured == null)
+      {
+         vRet.append(Character.toString(Character.toLowerCase(iCoordinateTo.getColumnLetter())))
+               .append(iCoordinateTo.getRowNumber());
+      }
+      else
+      {
+         vRet.append('x')
+               .append(ChessPiece
+                     .valueOf(iPieceCaptured,
+                           iPieceMoved.getColor() == ChessColor.WHITE ? ChessColor.BLACK : ChessColor.WHITE)
+                     .getSymbol());
+         if (iCaptureablePiecesLikeCapturedPiece)
+         {
+            vRet.append(Character.toString(Character.toLowerCase(iCoordinateTo.getColumnLetter())))
+                  .append(iCoordinateTo.getRowNumber());
+         }
+      }
+      if (iPiecePromoted != null)
+      {
+         vRet.append("=").append(ChessPiece.valueOf(iPiecePromoted, iPieceMoved.getColor()).getSymbol());
+      }
+      for (int x = 0; x < iCheck; x++)
+      {
+         vRet.append("+");
+      }
+      return vRet.toString().trim();
+   }
+
+   protected String toLongStringFormat()
+   {
+      StringBuilder vRet = new StringBuilder();
+      if (iIsShortCastle)
+      {
+         return "O-O";
+      }
+      else if (iIsLongCastle)
+      {
+         return "O-O-O";
+      }
+      vRet.append(iPieceMoved.getSymbol());
+      vRet.append(Character.toString(Character.toLowerCase(iCoordinateFrom.getColumnLetter())))
+            .append(iCoordinateFrom.getRowNumber());
+      if (iPieceCaptured == null)
+      {
+         vRet.append(Character.toString(Character.toLowerCase(iCoordinateTo.getColumnLetter())))
+               .append(iCoordinateTo.getRowNumber());
+      }
+      else
+      {
+         vRet.append('x')
+               .append(ChessPiece
+                     .valueOf(iPieceCaptured,
+                           iPieceMoved.getColor() == ChessColor.WHITE ? ChessColor.BLACK : ChessColor.WHITE)
+                     .getSymbol());
+         vRet.append(Character.toString(Character.toLowerCase(iCoordinateTo.getColumnLetter())))
+               .append(iCoordinateTo.getRowNumber());
+      }
+      if (iPiecePromoted != null)
+      {
+         vRet.append("=").append(ChessPiece.valueOf(iPiecePromoted, iPieceMoved.getColor()).getSymbol());
+      }
+      for (int x = 0; x < iCheck; x++)
+      {
+         vRet.append("+");
+      }
+      return vRet.toString().trim();
+   }
+
+   public String toPgnFormat()
    {
       StringBuilder vRet = new StringBuilder();
       if (iIsShortCastle)
@@ -338,44 +430,6 @@ public class MoveResult implements Cloneable
          vRet.append(Character.toString(Character.toLowerCase(iCoordinateTo.getColumnLetter())));
       }
       vRet.append(iCoordinateTo.getRowNumber());
-      if (iPiecePromoted != null)
-      {
-         vRet.append("=");
-         vRet.append(iPiecePromoted.getPieceName());
-      }
-      for (int x = 0; x < iCheck; x++)
-      {
-         vRet.append("+");
-      }
-      return vRet.toString().trim();
-   }
-
-   public String longFormat()
-   {
-      StringBuilder vRet = new StringBuilder();
-      char vPieceName = iPieceMoved.getSimpleChessPiece().getPieceName();
-      if (vPieceName != ' ')
-      {
-         vRet.append(vPieceName);
-      }
-      vRet.append(iCoordinateFrom.getLowerColumnLetter());
-      vRet.append(iCoordinateFrom.getRowNumber());
-      if (iPieceCaptured == null)
-      {
-         vRet.append("-");
-      }
-      else
-      {
-         vRet.append("x");
-         char vCapturedName = iPieceCaptured.getPieceName();
-         vRet.append(vCapturedName == ' ' ? "" : vCapturedName);
-      }
-      vRet.append(iCoordinateTo.getLowerColumnLetter());
-      vRet.append(iCoordinateTo.getRowNumber());
-      if (iMoveType == MoveType.CAPTURE_EP)
-      {
-         vRet.append(ChessResources.RESOURCES.getString("En.Passant.Long.Notation"));
-      }
       if (iPiecePromoted != null)
       {
          vRet.append("=");
@@ -425,6 +479,7 @@ public class MoveResult implements Cloneable
       Coordinate vCoordinateTo = iCoordinateTo == null ? null : (Coordinate) iCoordinateTo.clone();
       MoveResult vRet = new MoveResult(iPieceMoved, vCoordinateFrom, vCoordinateTo, iMoveType, iIsShortCastle,
             iIsLongCastle, iPieceCaptured);
+      vRet.iCaptureablePiecesLikeCapturedPiece = iCaptureablePiecesLikeCapturedPiece;
       vRet.iPiecePromoted = iPiecePromoted;
       vRet.iCheck = iCheck;
       vRet.iChessBoardDatabaseValue = iChessBoardDatabaseValue;
@@ -454,5 +509,15 @@ public class MoveResult implements Cloneable
    public boolean isOtherPieceCanGoTo()
    {
       return iOtherPieceCanGoTo;
+   }
+
+   public boolean isCaptureablePiecesLikeCapturedPiece()
+   {
+      return iCaptureablePiecesLikeCapturedPiece;
+   }
+
+   public void setCaptureablePiecesLikeCapturedPiece(boolean aCaptureablePiecesLikeCapturedPiece)
+   {
+      iCaptureablePiecesLikeCapturedPiece = aCaptureablePiecesLikeCapturedPiece;
    }
 }

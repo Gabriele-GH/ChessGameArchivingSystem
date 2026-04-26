@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Gabriele Pezzini
  * License: Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
@@ -121,5 +120,13 @@ public class ChessBoardPieceList implements Iterable<ChessBoardPiece>, Cloneable
       }
       vRet.iList = vOut;
       return vRet;
+   }
+
+   public void resetIsMoved()
+   {
+      for (ChessBoardPiece vPiece : iList)
+      {
+         vPiece.setMoved(false);
+      }
    }
 }

@@ -585,7 +585,7 @@ public class GameHistory implements Cloneable, Serializable
          {
             vPositionNoteData = new PositionNoteData();
          }
-         vList.add(new MoveResultData(vResult.getPieceMoved().getColor(), vResult.format(), vPositionNoteData));
+         vList.add(new MoveResultData(vResult.getPieceMoved().getColor(), vResult, vPositionNoteData));
       }
       vData.setMoveResultsData(vList);
       return vData;
@@ -618,7 +618,7 @@ public class GameHistory implements Cloneable, Serializable
       for (Iterator<MoveResult> vMoveResultIter = iMoveResults.iterator(); vMoveResultIter.hasNext();)
       {
          MoveResult vRes = vMoveResultIter.next();
-         vBuilder.append(vRes.shortFormat());
+         vBuilder.append(vRes.toShortStringFormat());
       }
       return Hash.hash(vBuilder.toString());
    }

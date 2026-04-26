@@ -467,4 +467,9 @@ public class ChessBoardController implements Serializable
    {
       iChessBoard.saveNote(aPositionNoteData);
    }
+
+   public void cleanGameHistory()
+   {
+      iChessBoard.getGameHistory().clear();
+   }
 }

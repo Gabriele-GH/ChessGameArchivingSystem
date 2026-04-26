@@ -28,6 +28,7 @@ import javax.swing.table.TableColumnModel;
 
 import com.pezz.chess.base.ChessResources;
 import com.pezz.chess.base.GameStatus;
+import com.pezz.chess.ui.ChessPanelUI;
 import com.pezz.chess.ui.HorizontalAlignmentTableCellRenderer;
 import com.pezz.chess.ui.UIController;
 import com.pezz.chess.uidata.GameHistoryData;
@@ -59,7 +60,7 @@ public class GameHistoryPanelUI extends JPanel implements MouseListener, MouseMo
       vColNames.add(ChessResources.RESOURCES.getString("Black"));
       GameHistoryTableModel vGHTM = new GameHistoryTableModel(iUIController.getGameHistoryData(), vColNames);
       iTblMove = new JTable(vGHTM);
-      iTblMove.setRowHeight(iTblMove.getRowHeight() + 1);
+      iTblMove.setRowHeight(iTblMove.getRowHeight() + ChessPanelUI.iTblRowHeightCoeff);
       iTblMove.addMouseListener(this);
       iTblMove.addMouseMotionListener(this);
       iTblMove.getTableHeader().setReorderingAllowed(false);
